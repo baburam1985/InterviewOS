@@ -124,8 +124,13 @@ test("a narrow viewport preserves answer, profile and story drafts across modes 
     exact: true,
   });
   await another.focus();
-  page.once("dialog", (dialog) => dialog.dismiss());
-  await page.keyboard.press("Enter");
+  const confirmation = page.waitForEvent("dialog");
+  const questionChange = page.keyboard.press("Enter");
+  const dialog = await confirmation;
+  expect(dialog.type()).toBe("confirm");
+  expect(dialog.message()).toContain("unsaved answer");
+  await dialog.dismiss();
+  await questionChange;
   await expect(page.getByLabel("Your answer", { exact: true })).toHaveValue(
     answer,
   );
