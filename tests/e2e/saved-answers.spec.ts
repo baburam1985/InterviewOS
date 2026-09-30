@@ -86,7 +86,7 @@ test("long phone history opens a visible named detail and Back restores the chos
   await back.click();
   await expect(rows).toHaveCount(12);
   await expect(row).toBeFocused();
-  await expect(row).toHaveText(priorName);
+  await expect(row).toHaveText(priorName, { useInnerText: true });
   await expect(row).toBeInViewport();
 });
 
