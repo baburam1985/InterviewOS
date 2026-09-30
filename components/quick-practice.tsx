@@ -491,7 +491,9 @@ export function QuickHistory({
             <button onClick={() => onExport(selected)}>
               <Download size={15} /> Export review
             </button>
-            <button onClick={() => onDelete(selected)}>Delete answer</button>
+            <button disabled={!canSave} onClick={() => onDelete(selected)}>
+              Delete answer
+            </button>
           </div>
         </div>
       ) : !sessions.length ? (
