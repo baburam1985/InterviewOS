@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Explain feedback signals:** Detailed reviews show the matched text and a short answer excerpt for each keyword check, explain when configured phrases did not match, and disclose the word-count range. Current and saved answers use the same rubric rules; scores and stored answers remain unchanged
+- **Keep open work in exports:** Workspace downloads include unsaved story and practice drafts, identify unsaved profile changes and unconfirmed saves, and state when server data was unavailable. Draft-only work enables export; recovery notices offer a local download before sign-in. Exporting leaves drafts and stored records unchanged; refreshed history marks a retained answer unsaved when its saved record is gone. Automatic import is not supported
+
+- **Explain feedback signals ([PR #12](https://github.com/baburam1985/InterviewOS/pull/12)):** Detailed reviews show the matched text and a short answer excerpt for each keyword check, explain when configured phrases did not match, and disclose the word-count range. Current and saved answers use the same rubric rules; scores and stored answers remain unchanged
 
 - **Sign-in recovery during practice ([PR #11](https://github.com/baburam1985/InterviewOS/pull/11)):** A save or deletion rejected because sign-in is required keeps open work visible and offers Sign in or Check sign-in. Further writes wait for a validated workspace reload; rechecking preserves edited profile and story fields, and saving or deleting still requires an explicit retry
 
