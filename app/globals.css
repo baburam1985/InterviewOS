@@ -25,3 +25,9 @@ textarea:disabled,input:disabled,select:disabled{background:#f5f7fb;color:#63718
   outline: 3px solid #85a1ff;
   outline-offset: 4px;
 }
+
+.check .check-evidence { font-size: 12px; color: #586a83; margin-top: 7px; overflow-wrap: anywhere; }
+.check-evidence p { margin: 4px 0; }
+.check .check-excerpt { color: #354b6e; background: #f4f7fc; border-radius: 6px; padding: 8px 10px; }
+.check-excerpt mark { background: #e0e9ff; color: #203f80; font-weight: 600; }
+.check > div { min-width: 0; }

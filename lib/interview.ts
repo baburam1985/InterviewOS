@@ -185,6 +185,129 @@ export const questions = [
     text: "How would you clarify an offer's expectations and confirm agreed next steps?",
   },
 ];
+/** Shared keyword rules for both scoring and transparent text explanations. */
+export function keywordRules(category: string) {
+  const technical = category === "Technical" || category === "System design";
+  const checks = technical
+    ? [
+        {
+          label: "Clarifies requirements",
+          pattern: /require|assum|constraint|input|output|user|scale/i,
+          advice:
+            "State requirements, assumptions, and constraints before proposing a solution.",
+        },
+        {
+          label: "Explains approach",
+          pattern:
+            /approach|algorithm|hash|map|cache|queue|database|service|step|pointer/i,
+          advice: "Walk through the approach and explain why it fits.",
+        },
+        {
+          label: "Discusses trade-offs",
+          pattern:
+            /complexity|O\(|trade.?off|latency|consisten|space|time|cost/i,
+          advice:
+            "Compare trade-offs and discuss time, space, latency, or cost.",
+        },
+        {
+          label: "Covers edge cases",
+          pattern: /edge|empty|null|duplicate|fail|test|error|retry|overflow/i,
+          advice:
+            "Include failure modes, boundary conditions, and a testing plan.",
+        },
+      ]
+    : category === "Negotiation"
+      ? [
+          {
+            label: "Keeps a collaborative tone",
+            pattern: /thank|excited|enthusias|appreciat|together|opportunity/i,
+            advice:
+              "Acknowledge the opportunity and keep the conversation collaborative.",
+          },
+          {
+            label: "Explains priorities",
+            pattern:
+              /priorit|important|because|value|experience|market|research|responsibil/i,
+            advice:
+              "Explain which terms matter to you and the evidence behind your request.",
+          },
+          {
+            label: "Makes a clear request",
+            pattern:
+              /could|would|request|discuss|consider|flexib|target|propos/i,
+            advice:
+              "Make a specific, respectful request rather than an ultimatum.",
+          },
+          {
+            label: "Agrees on next steps",
+            pattern:
+              /next|follow.up|confirm|review|timeline|deadline|by (monday|tuesday|wednesday|thursday|friday)|time to/i,
+            advice: "Suggest a next step or a timeline for a response.",
+          },
+        ]
+      : category === "Recruiter"
+        ? [
+            {
+              label: "Gives relevant context",
+              pattern: /experience|background|role|work|career|skill|team/i,
+              advice:
+                "Briefly introduce the experience or priorities relevant to this conversation.",
+            },
+            {
+              label: "Explains motivation",
+              pattern:
+                /because|interes|looking for|motiv|want|opportunity|important/i,
+              advice:
+                "Explain what interests you and what you want from your next role.",
+            },
+            {
+              label: "Connects to the opportunity",
+              pattern: /company|team|role|mission|product|customer|contribut/i,
+              advice:
+                "Connect your experience or questions to this particular opportunity.",
+            },
+            {
+              label: "Uses a specific example",
+              pattern:
+                /for example|project|led|built|deliver|improv|learn|achiev/i,
+              advice: "Support your answer with a short, truthful example.",
+            },
+          ]
+        : [
+            {
+              label: "Sets the scene",
+              pattern:
+                /when|during|at my|project|team|situation|working|company/i,
+              advice: "Anchor the story in a specific situation.",
+            },
+            {
+              label: "Shows ownership",
+              pattern:
+                /\bI\s+(led|owned|built|decided|created|proposed|worked|implemented|managed|was responsible|needed|had to)/i,
+              advice:
+                "Explain your responsibility and your personal contribution.",
+            },
+            {
+              label: "Explains actions",
+              pattern:
+                /because|first|then|decided|implemented|analy[sz]ed|prioriti[sz]ed|tested/i,
+              advice: "Explain what you did, in sequence, and why.",
+            },
+            {
+              label: "Shows an outcome",
+              pattern:
+                /result|improv|reduc|increas|achiev|learn|deliver|saved/i,
+              advice: "Close with the outcome and what you learned.",
+            },
+          ];
+  checks.push({
+    label: "Uses concrete detail",
+    pattern: /\d|percent|hours|weeks|customers/i,
+    advice: "Add an accurate number, timeframe, or concrete example.",
+  });
+  return checks;
+}
+
 export function evaluate(
   answer: string,
   seconds: number,
@@ -196,145 +319,10 @@ export function evaluate(
       /\b(um|uh|basically|actually|literally)\b|you know|sort of|kind of/gi,
     ) || []
   ).length;
-  const technical = category === "Technical" || category === "System design";
-  const checks = technical
-    ? [
-        {
-          label: "Clarifies requirements",
-          pass: /require|assum|constraint|input|output|user|scale/i.test(
-            answer,
-          ),
-          advice:
-            "State requirements, assumptions, and constraints before proposing a solution.",
-        },
-        {
-          label: "Explains approach",
-          pass: /approach|algorithm|hash|map|cache|queue|database|service|step|pointer/i.test(
-            answer,
-          ),
-          advice: "Walk through the approach and explain why it fits.",
-        },
-        {
-          label: "Discusses trade-offs",
-          pass: /complexity|O\(|trade.?off|latency|consisten|space|time|cost/i.test(
-            answer,
-          ),
-          advice:
-            "Compare trade-offs and discuss time, space, latency, or cost.",
-        },
-        {
-          label: "Covers edge cases",
-          pass: /edge|empty|null|duplicate|fail|test|error|retry|overflow/i.test(
-            answer,
-          ),
-          advice:
-            "Include failure modes, boundary conditions, and a testing plan.",
-        },
-      ]
-    : category === "Negotiation"
-      ? [
-          {
-            label: "Keeps a collaborative tone",
-            pass: /thank|excited|enthusias|appreciat|together|opportunity/i.test(
-              answer,
-            ),
-            advice:
-              "Acknowledge the opportunity and keep the conversation collaborative.",
-          },
-          {
-            label: "Explains priorities",
-            pass: /priorit|important|because|value|experience|market|research|responsibil/i.test(
-              answer,
-            ),
-            advice:
-              "Explain which terms matter to you and the evidence behind your request.",
-          },
-          {
-            label: "Makes a clear request",
-            pass: /could|would|request|discuss|consider|flexib|target|propos/i.test(
-              answer,
-            ),
-            advice:
-              "Make a specific, respectful request rather than an ultimatum.",
-          },
-          {
-            label: "Agrees on next steps",
-            pass: /next|follow.up|confirm|review|timeline|deadline|by (monday|tuesday|wednesday|thursday|friday)|time to/i.test(
-              answer,
-            ),
-            advice: "Suggest a next step or a timeline for a response.",
-          },
-        ]
-      : category === "Recruiter"
-        ? [
-            {
-              label: "Gives relevant context",
-              pass: /experience|background|role|work|career|skill|team/i.test(
-                answer,
-              ),
-              advice:
-                "Briefly introduce the experience or priorities relevant to this conversation.",
-            },
-            {
-              label: "Explains motivation",
-              pass: /because|interes|looking for|motiv|want|opportunity|important/i.test(
-                answer,
-              ),
-              advice:
-                "Explain what interests you and what you want from your next role.",
-            },
-            {
-              label: "Connects to the opportunity",
-              pass: /company|team|role|mission|product|customer|contribut/i.test(
-                answer,
-              ),
-              advice:
-                "Connect your experience or questions to this particular opportunity.",
-            },
-            {
-              label: "Uses a specific example",
-              pass: /for example|project|led|built|deliver|improv|learn|achiev/i.test(
-                answer,
-              ),
-              advice: "Support your answer with a short, truthful example.",
-            },
-          ]
-        : [
-            {
-              label: "Sets the scene",
-              pass: /when|during|at my|project|team|situation|working|company/i.test(
-                answer,
-              ),
-              advice: "Anchor the story in a specific situation.",
-            },
-            {
-              label: "Shows ownership",
-              pass: /\bI\s+(led|owned|built|decided|created|proposed|worked|implemented|managed|was responsible|needed|had to)/i.test(
-                answer,
-              ),
-              advice:
-                "Explain your responsibility and your personal contribution.",
-            },
-            {
-              label: "Explains actions",
-              pass: /because|first|then|decided|implemented|analy[sz]ed|prioriti[sz]ed|tested/i.test(
-                answer,
-              ),
-              advice: "Explain what you did, in sequence, and why.",
-            },
-            {
-              label: "Shows an outcome",
-              pass: /result|improv|reduc|increas|achiev|learn|deliver|saved/i.test(
-                answer,
-              ),
-              advice: "Close with the outcome and what you learned.",
-            },
-          ];
-  checks.push({
-    label: "Uses concrete detail",
-    pass: /\d|percent|hours|weeks|customers/i.test(answer),
-    advice: "Add an accurate number, timeframe, or concrete example.",
-  });
+  const checks = keywordRules(category).map(({ pattern, ...rule }) => ({
+    ...rule,
+    pass: pattern.test(answer),
+  }));
   checks.push({
     label: "Keeps a useful length",
     pass: words >= 60 && words <= 300,

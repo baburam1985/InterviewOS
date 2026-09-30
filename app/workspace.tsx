@@ -51,6 +51,7 @@ import {
   type PracticeDraft,
 } from "../lib/practice-handoff";
 import { QuickPractice, QuickHistory } from "../components/quick-practice";
+import { CheckEvidence } from "../components/check-evidence";
 import { MockRecap } from "../components/mock-recap";
 import {
   beginMockRun,
@@ -1126,7 +1127,15 @@ export default function Workspace() {
                 }
                 focus={practiceFocus}
                 guidance={notes.steps}
-                detailedReview={review ? <ReviewPanel review={review} /> : null}
+                detailedReview={
+                  review ? (
+                    <ReviewPanel
+                      review={review}
+                      answer={answer}
+                      category={category}
+                    />
+                  ) : null
+                }
               />
             )}
             {mode === "quick" && tab === "Progress" && (
@@ -1149,7 +1158,11 @@ export default function Workspace() {
                 recap={recap}
                 detailedReview={
                   selectedSession ? (
-                    <ReviewPanel review={selectedSession.review} />
+                    <ReviewPanel
+                      review={selectedSession.review}
+                      answer={selectedSession.answer}
+                      category={selectedSession.category}
+                    />
                   ) : null
                 }
               />
@@ -1324,7 +1337,13 @@ export default function Workspace() {
                         <Sparkles size={16} />
                       </button>
                     </div>
-                    {review && <ReviewPanel review={review} />}
+                    {review && (
+                      <ReviewPanel
+                        review={review}
+                        answer={answer}
+                        category={category}
+                      />
+                    )}
                     <div className="room-footer">
                       <button onClick={next}>
                         {mock && round === 5
@@ -1940,7 +1959,11 @@ export default function Workspace() {
                             <p className="saved-answer">
                               {selectedSession.answer}
                             </p>
-                            <ReviewPanel review={selectedSession.review} />
+                            <ReviewPanel
+                              review={selectedSession.review}
+                              answer={selectedSession.answer}
+                              category={selectedSession.category}
+                            />
                             <button
                               className="primary"
                               onClick={() => retryPractice(selectedSession)}
@@ -2130,7 +2153,15 @@ function Empty({
     </div>
   );
 }
-function ReviewPanel({ review }: { review: Review }) {
+function ReviewPanel({
+  review,
+  answer,
+  category,
+}: {
+  review: Review;
+  answer: string;
+  category: string;
+}) {
   return (
     <div className="review">
       <div className="section-heading">
@@ -2148,13 +2179,15 @@ function ReviewPanel({ review }: { review: Review }) {
           <div>
             <strong>{c.label}</strong>
             {!c.pass && <p>{c.advice}</p>}
+            <CheckEvidence answer={answer} category={category} check={c} />
           </div>
         </div>
       ))}
       <p className="micro-copy">
-        Rule-based English keyword checks, not an assessment of accuracy or
-        hiring potential. Speaking pace is shown only for unedited voice answers
-        with at least 10 seconds of audio.
+        A matched phrase is only a keyword signal, not proof of a complete or
+        correct answer. English rules can miss nuance and other languages. These
+        checks do not predict hiring outcomes. Speaking pace is shown only for
+        unedited voice answers with at least 10 seconds of audio.
       </p>
     </div>
   );
