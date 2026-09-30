@@ -47,7 +47,11 @@ Playwright starts its own loopback-only server on port 4173 and creates an isola
 
 Set `E2E_PORT` if 4173 is occupied. To use an installed Chromium instead of downloading one, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its executable path. The test suite is cross-platform and has no developer-specific file paths.
 
-The GitHub Actions workflow runs the same quality checks on pushes and pull requests. `npm run build` produces output; it does not deploy it.
+The GitHub Actions workflow runs the same quality checks on pushes and pull requests. A separate compatibility job runs three integrated journeys in each of Playwright's Firefox and WebKit engines: guest sign-in recovery through a saved retry and history export; narrow-viewport draft protection, mode switches and workspace export; and recovery after a committed save loses its acknowledgement. These use the same isolated local server and synthetic-data safeguards as the Chromium suite.
+
+To run the compatibility gate locally, install its browsers once with `npm run test:install:compat`, then run `npm run test:compat`. Run it **after** `npm run check`, not concurrently in the same checkout: both browser suites reset the dedicated `.wrangler/test-state` database. Open its report with `npx playwright show-report playwright-report/compatibility`. CI runs the gates in separate machines. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` applies only to the Chromium suite.
+
+The full end-to-end/API suite runs in Chromium; Firefox/WebKit cover the three core journeys above. WebKit on CI is not a physical Safari or iPhone test, and a narrow viewport does not validate touch, mobile keyboards, microphones or assistive technology. Hosted sign-in still needs separate validation. `npm run build` produces output; it does not deploy it.
 
 ## Two ways to practice
 
