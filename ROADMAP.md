@@ -16,7 +16,8 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Quick saved-answer navigation opens one answer at a time, with visible Back navigation, keyboard focus restoration, and precise saved timestamps
 - Thirty-five built-in questions across seven categories; five distinct questions per mock
 - Current-visit mock recap shows each round's actual outcome, saved-answer access, a direct return to an unsaved current answer, and one grounded next practice step
-- Explicit saved/unsaved state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
+- Explicit saved/unsaved/unconfirmed state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
+- Workspace load/save/delete acknowledgements are validated before state updates; uncertain saves retry the same record without duplicates and malformed loads cannot partially replace the editor
 - Guest sign-in keeps a validated temporary practice copy in the same tab, with explicit resume/discard and export fallback; recovery never saves to an account automatically
 - Explained built-in practice suggestions, including category-specific rehearsal steps when all basic checks match; no target-role setup is required
 - Portable local setup, synthetic-data tests, and a draft-PR CI gate
@@ -26,7 +27,7 @@ The heuristic rubric checks English structure and detail. It does not validate f
 ## Next small iterations
 
 1. Validate the first-use flow with a small set of target users: can they find a suitable question, start without explanation, understand one next fix, retry, and find saved work? Measure friction rather than adding features by default
-2. Improve continuity: validate guest sign-in recovery through the hosted authentication and embedded-browser paths; consider remembering the user's selected workspace mode; validate stage announcements with assistive technology and physical mobile keyboards in addition to automated focus/viewport checks
+2. Improve continuity: validate unreliable connections and interrupted acknowledgements on hosted infrastructure, in addition to synthetic recovery tests; validate guest sign-in recovery through the hosted authentication and embedded-browser paths; consider remembering the user's selected workspace mode; validate stage announcements with assistive technology and physical mobile keyboards in addition to automated focus/viewport checks
 3. Make role context more useful: connect real stories and role requirements to targeted practice while keeping context optional and personal claims grounded in supplied evidence
 4. Validate the current-visit mock recap with users before adding persistent group summaries; preserve individual reviews and distinguish skipped, unsaved, and unvisited rounds
 5. Validate finding and revisiting saved attempts with larger histories and assistive technology; then consider comparisons that show a concrete structural change without implying a validated performance score
