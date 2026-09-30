@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Choose AI context:** Optional AI coaching shares only the question, answer and interview type by default. Profile and saved-story sharing are separate opt-ins, with a readable request preview, disclosure of unsaved profile fields, and choices that clear when AI is turned off. Opening settings or the preview sends nothing
+- **Compare saved answers:** An optional collapsed comparison in Quick and Advanced shows complete answer text, save times and word counts for the selected answer and its nearest earlier same-question/category record. It keeps drafts unchanged, identifies identical text, and explains that save ordering is not a complete attempt history or evidence of improved quality
+
+- **Choose AI context ([PR #15](https://github.com/baburam1985/InterviewOS/pull/15)):** Optional AI coaching shares only the question, answer and interview type by default. Profile and saved-story sharing are separate opt-ins, with a readable request preview, disclosure of unsaved profile fields, and choices that clear when AI is turned off. Opening settings or the preview sends nothing
 
 - **Preserve changed answer versions ([PR #14](https://github.com/baburam1985/InterviewOS/pull/14)):** When a validated recheck observes a different saved answer, keep this tab's current text as a separate draft and explain that its next explicit save creates another history entry. A matching write with a lost acknowledgement retains its retry ID, and timestamp/review-only changes do not fork the answer
 
