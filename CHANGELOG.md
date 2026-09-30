@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Recover unexpected AI replies:** Optional coaching validates text before rendering or changing saved status, keeps drafts and previous feedback on malformed replies, and rejects output beyond the saved-coaching limit. Setup reports configured, absent, pending or failed checks truthfully, with an explicit content-free retry and no claim that a configured key proves provider readiness
+- **Start existing local workspaces safely:** Legacy databases initialized from the original SQL file can adopt the migration ledger after exact schema and migration-file checks, with a verified private SQL backup first. Atomic guards reject schema/history races, mismatches stop for review, and records remain unchanged. Normal migrations then continue
+
+- **Recover unexpected AI replies ([PR #18](https://github.com/baburam1985/InterviewOS/pull/18)):** Optional coaching validates text before rendering or changing saved status, keeps drafts and previous feedback on malformed replies, and rejects output beyond the saved-coaching limit. Setup reports configured, absent, pending or failed checks truthfully, with an explicit content-free retry and no claim that a configured key proves provider readiness
 
 - **Simpler local startup ([PR #17](https://github.com/baburam1985/InterviewOS/pull/17)):** After dependency installation, `npm run dev:local` validates Node and dependencies, applies idempotent local migrations, and prints exact loopback practice and sign-in URLs. Port conflicts have a direct recovery command. A disposable startup/restart smoke test verifies local profile, story and answer persistence without touching normal workspace data
 

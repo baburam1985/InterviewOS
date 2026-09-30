@@ -48,7 +48,7 @@ try {
     console.log(
       "Preparing local storage in .wrangler/state (existing records are kept)…",
     );
-    migrateLocal();
+    await migrateLocal();
     const { createServer } = await import("vite");
     server = await createServer({
       root: projectRoot,
