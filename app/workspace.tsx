@@ -51,6 +51,10 @@ import {
   type PracticeDraft,
 } from "../lib/practice-handoff";
 import { QuickPractice, QuickHistory } from "../components/quick-practice";
+import {
+  answerChangedOnRefresh,
+  rememberAnswerAttempt,
+} from "../lib/answer-refresh";
 import { workspaceExport } from "../lib/workspace-export";
 import { CheckEvidence } from "../components/check-evidence";
 import { MockRecap } from "../components/mock-recap";
@@ -151,6 +155,8 @@ export default function Workspace() {
     activeVoice = useRef(false),
     aiAbort = useRef<AbortController | null>(null),
     sessionId = useRef(""),
+    confirmedAnswer = useRef<Session | null>(null),
+    attemptedAnswers = useRef<Session[]>([]),
     [savedId, setSavedId] = useState(""),
     [storyDraft, setStoryDraft] = useState<Story | null>(null),
     [search, setSearch] = useState(""),
@@ -171,18 +177,28 @@ export default function Workspace() {
           setStories(
             d.records.flatMap((r) => (r.kind === "story" ? [r.data] : [])),
           );
-          setSessions(
-            d.records
-              .flatMap((r) => (r.kind === "session" ? [r.data] : []))
-              .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+          const loadedSessions = d.records
+            .flatMap((r) => (r.kind === "session" ? [r.data] : []))
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+          const answerChanged = answerChangedOnRefresh(
+            loadedSessions,
+            sessionId.current,
+            confirmedAnswer.current,
+            attemptedAnswers.current,
           );
-          // A record removed since the last load must not keep the retained
-          // editor marked saved or a deleted history detail visible.
-          setSavedId((id) =>
-            d.records.some((r) => r.kind === "session" && r.data.id === id)
-              ? id
-              : "",
-          );
+          setSessions(loadedSessions);
+          if (answerChanged) {
+            sessionId.current = "";
+            confirmedAnswer.current = null;
+            attemptedAnswers.current = [];
+            setSavedId("");
+            setAnswerSaveUnconfirmed(false);
+          } else {
+            // Missing records cannot leave retained text marked saved.
+            setSavedId((id) =>
+              loadedSessions.some((s) => s.id === id) ? id : "",
+            );
+          }
           setSelectedSession((selected) => {
             const record = d.records.find(
               (r) => r.kind === "session" && r.data.id === selected?.id,
@@ -191,7 +207,12 @@ export default function Workspace() {
           });
           setWorkspaceReady(true);
           setLoadError(false);
-          if (d.warning) setNotice(d.warning);
+          if (answerChanged) {
+            setNotice(
+              "A saved answer changed since this tab loaded. Your current answer is kept as a separate draft. Saving it will create another history entry." +
+                (d.warning ? " " + d.warning : ""),
+            );
+          } else if (d.warning) setNotice(d.warning);
         })
         .catch((e: unknown) => {
           setNotice((e as Error).message);
@@ -477,6 +498,8 @@ export default function Workspace() {
     setSavedId("");
     setAnswerSaveUnconfirmed(false);
     sessionId.current = "";
+    confirmedAnswer.current = null;
+    attemptedAnswers.current = [];
     if (!continueMock) setMock(false);
     setNotice("");
     return true;
@@ -688,9 +711,15 @@ export default function Workspace() {
       review: r,
       ai: aiText || undefined,
     };
+    attemptedAnswers.current = rememberAnswerAttempt(
+      attemptedAnswers.current,
+      s,
+    );
     const result = await save("session", s);
     setAnswerSaveUnconfirmed(!result);
     if (result) {
+      confirmedAnswer.current = result.data;
+      attemptedAnswers.current = [];
       setSessions((prev) => [
         result.data,
         ...prev.filter((x) => x.id !== s.id),

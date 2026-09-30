@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Keep open work in exports:** Workspace downloads include unsaved story and practice drafts, identify unsaved profile changes and unconfirmed saves, and state when server data was unavailable. Draft-only work enables export; recovery notices offer a local download before sign-in. Exporting leaves drafts and stored records unchanged; refreshed history marks a retained answer unsaved when its saved record is gone. Automatic import is not supported
+- **Preserve changed answer versions:** When a validated recheck observes a different saved answer, keep this tab's current text as a separate draft and explain that its next explicit save creates another history entry. A matching write with a lost acknowledgement retains its retry ID, and timestamp/review-only changes do not fork the answer
+
+- **Keep open work in exports ([PR #13](https://github.com/baburam1985/InterviewOS/pull/13)):** Workspace downloads include unsaved story and practice drafts, identify unsaved profile changes and unconfirmed saves, and state when server data was unavailable. Draft-only work enables export; recovery notices offer a local download before sign-in. Exporting leaves drafts and stored records unchanged; refreshed history marks a retained answer unsaved when its saved record is gone. Automatic import is not supported
 
 - **Explain feedback signals ([PR #12](https://github.com/baburam1985/InterviewOS/pull/12)):** Detailed reviews show the matched text and a short answer excerpt for each keyword check, explain when configured phrases did not match, and disclose the word-count range. Current and saved answers use the same rubric rules; scores and stored answers remain unchanged
 
