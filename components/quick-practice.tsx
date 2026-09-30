@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Review, Session } from "../lib/interview";
 import { feedbackReason } from "../lib/interview";
+import { FeedbackHelp } from "./feedback-help";
 
 export const practiceGoals = [
   {
@@ -208,6 +209,7 @@ export function QuickPractice(props: Props) {
           >
             Practice another question <ChevronRight size={16} />
           </button>
+          <FeedbackHelp review={props.review} category={props.category} />
           <details className="quick-details">
             <summary>Your question and answer</summary>
             <h3>{props.question}</h3>
@@ -462,6 +464,7 @@ export function QuickHistory({
           >
             Practice this question again <RotateCcw size={17} />
           </button>
+          <FeedbackHelp review={selected.review} category={selected.category} />
           <details className="quick-details" open>
             <summary>Your saved answer</summary>
             <p className="saved-answer">{selected.answer}</p>
