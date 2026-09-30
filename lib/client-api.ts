@@ -10,7 +10,11 @@ export class ApiError extends Error {
 
 /** All requests are bounded so a disconnected server never locks the editor. */
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
-  const timeout = AbortSignal.timeout(path === "/api/coach" ? 50_000 : 15_000);
+  const timeout = AbortSignal.timeout(
+    path === "/api/coach" && options?.method?.toUpperCase() === "POST"
+      ? 50_000
+      : 15_000,
+  );
   try {
     const response = await fetch(path, {
       ...options,

@@ -90,9 +90,11 @@ For schema changes, edit `db/schema.ts`, run `npm run db:generate`, and check in
 
 ## Optional AI
 
-No AI credential is included or required. The site owner can configure `OPENAI_API_KEY` as a server-side Sites secret, optionally set `OPENAI_MODEL`, and publish through their existing hosting workflow. Never commit credentials. In the app, enable AI in Research & settings and choose Get AI coaching.
+No AI credential is included or required. The site owner can configure `OPENAI_API_KEY` as a server-side Sites secret, optionally set `OPENAI_MODEL`, and publish through their existing hosting workflow. Never commit credentials. In the app, enable AI in Research & settings and choose Get AI coaching. The setup status distinguishes a configured key, no configured key, a pending check and a failed/unexpected check. Check AI setup retries only the same-origin application endpoint and sends no practice content to a provider. A configured key does not establish provider access, billing readiness or response quality; coaching still requires an explicit request.
 
 Each request sends the current question, answer and interview category to OpenAI. Profile and story sharing both start off. In the practice room, explicitly include the current role/company/resume/job-description fields (including unsaved edits), up to the first five saved stories, both, or neither. Review request contents shows the same context used to build the request; story IDs/tags and undisclosed extra fields are excluded. Enabling AI, changing a choice or opening the preview does not send a request. The choices last for this visit and clear when AI is turned off or the page reloads. Provider usage can incur charges. Requests use `store:false`; this does not override provider abuse-monitoring policies. The key never enters client bundles or saved records. AI output is advisory and must not be treated as a hiring assessment.
+
+AI replies are validated before display or saved-state changes. Missing, non-text, blank or oversized replies produce a recoverable error and retain the current answer, previous coaching and saved record status. Accepted text follows the same 20,000-character limit as saved coaching, so an unexpected oversized reply cannot make an otherwise valid answer unsaveable. Retry explicitly or continue with built-in feedback. Setup checks time out after 15 seconds; explicit coaching requests retain their 50-second client timeout. Automated responses remain synthetic, not live provider validation.
 
 ## Known limits
 

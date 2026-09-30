@@ -37,7 +37,11 @@ import {
   guidance,
   capabilities,
 } from "../lib/interview";
-import { api, ApiError } from "../lib/client-api";
+import { ApiError } from "../lib/client-api";
+import {
+  loadCoachingAvailability,
+  requestCoaching,
+} from "../lib/coaching-client";
 import {
   loadWorkspace,
   saveWorkspace,
@@ -148,7 +152,9 @@ export default function Workspace() {
     [custom, setCustom] = useState(""),
     [review, setReview] = useState<Review | null>(null),
     [aiText, setAiText] = useState(""),
-    [aiAvailable, setAiAvailable] = useState(false),
+    [aiStatus, setAiStatus] = useState<
+      "checking" | "available" | "unavailable" | "error"
+    >("checking"),
     [aiBusy, setAiBusy] = useState(false),
     [aiEnabled, setAiEnabled] = useState(false);
   const [running, setRunning] = useState(false),
@@ -164,6 +170,7 @@ export default function Workspace() {
     voiceStart = useRef(0),
     activeVoice = useRef(false),
     aiAbort = useRef<AbortController | null>(null),
+    aiSetupAbort = useRef<AbortController | null>(null),
     sessionId = useRef(""),
     confirmedAnswer = useRef<Session | null>(null),
     attemptedAnswers = useRef<Session[]>([]),
@@ -236,19 +243,37 @@ export default function Workspace() {
         }),
     [setSavedId, setSelectedSession],
   );
+  const aiAvailable = aiStatus === "available";
+  const checkAISetup = useCallback(() => {
+    if (aiSetupAbort.current) return;
+    const controller = new AbortController();
+    aiSetupAbort.current = controller;
+    return loadCoachingAvailability(controller.signal)
+      .then((available) => {
+        if (aiSetupAbort.current === controller && !controller.signal.aborted)
+          setAiStatus(available ? "available" : "unavailable");
+      })
+      .catch(() => {
+        if (aiSetupAbort.current === controller && !controller.signal.aborted)
+          setAiStatus("error");
+      })
+      .finally(() => {
+        if (aiSetupAbort.current === controller) aiSetupAbort.current = null;
+      });
+  }, []);
   useEffect(() => {
     void load();
-    api<{ available: boolean }>("/api/coach")
-      .then((d) => setAiAvailable(d.available))
-      .catch(() => {});
+    void checkAISetup();
     return () => {
       const rec = recognition.current;
       recognition.current = null;
       rec?.abort();
       aiAbort.current?.abort();
+      aiSetupAbort.current?.abort();
+      aiSetupAbort.current = null;
       window.speechSynthesis?.cancel();
     };
-  }, [load]);
+  }, [load, checkAISetup]);
   useEffect(() => {
     if (!signInRequired) return;
     signInRecovery.current?.focus();
@@ -805,14 +830,9 @@ export default function Workspace() {
     const controller = new AbortController();
     aiAbort.current = controller;
     try {
-      const d = await api<{ text: string }>("/api/coach", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(aiRequest),
-        signal: controller.signal,
-      });
+      const text = await requestCoaching(aiRequest, controller.signal);
       if (aiAbort.current === controller && !controller.signal.aborted) {
-        setAiText(d.text);
+        setAiText(text);
         setSavedId("");
         setAnswerSaveUnconfirmed(false);
       }
@@ -2139,11 +2159,28 @@ export default function Workspace() {
                 />
                 <div className="card settings">
                   <h3>Coaching engine</h3>
-                  <p>
-                    {aiAvailable
-                      ? "An AI provider is connected. Enable it to request personalized coaching."
-                      : "Built-in coaching is active. No AI API key is configured for this app."}
+                  <p role="status" aria-label="AI setup status">
+                    {aiStatus === "checking"
+                      ? "Checking AI setup. Built-in coaching is ready to use."
+                      : aiStatus === "error"
+                        ? "AI setup could not be checked. Built-in coaching still works. Try checking again."
+                        : aiAvailable
+                          ? "An AI key is configured. Enable optional AI to request coaching."
+                          : "No AI key is configured. Built-in coaching still works."}
                   </p>
+                  {!aiAvailable && (
+                    <button
+                      disabled={aiStatus === "checking"}
+                      onClick={() => {
+                        setAiStatus("checking");
+                        void checkAISetup();
+                      }}
+                    >
+                      {aiStatus === "checking"
+                        ? "Checking AI setup…"
+                        : "Check AI setup"}
+                    </button>
+                  )}
                   <label className="checkbox">
                     <input
                       type="checkbox"
@@ -2173,8 +2210,9 @@ export default function Workspace() {
                       To enable AI, the site owner must connect an OpenAI API
                       key as the OPENAI_API_KEY site secret and publish the app
                       again. OPENAI_MODEL can select a compatible Responses API
-                      model. This build has no provider credentials and its AI
-                      responses have not been live-tested.
+                      model. The setup check only confirms that a server key is
+                      configured; it does not verify provider access, billing or
+                      response quality. Requests can still fail after setup.
                     </p>
                     <p>
                       Voice uses browser speech recognition, not direct meeting
