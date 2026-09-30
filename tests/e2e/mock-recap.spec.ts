@@ -165,6 +165,14 @@ test("switching an active technical mock to Quick retains its draft and later sa
   await expect(page.locator("#saved-answer-detail .saved-answer")).toHaveText(
     answer,
   );
+  await page
+    .getByRole("button", { name: "Back to saved answers", exact: true })
+    .click();
+  await expect(recap(page)).toBeVisible();
+  await recap(page)
+    .getByRole("button", { name: "View saved answer 1", exact: true })
+    .click();
+  await expect(page.locator("#saved-answer-detail")).toBeFocused();
   await tab(page, "Progress");
   await expect(recap(page)).toContainText("1 of 5 answers saved");
   expect(

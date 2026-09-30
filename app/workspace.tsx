@@ -102,6 +102,7 @@ export default function Workspace() {
   const [mode, setMode] = useState<"quick" | "advanced">("quick");
   const [quickStarted, setQuickStarted] = useState(false);
   const [quickGoal, setQuickGoal] = useState("Recruiter");
+  const [quickHistoryOpen, setQuickHistoryOpen] = useState(false);
   const [practiceFocus, setPracticeFocus] = useState("");
   const [pendingPractice, setPendingPractice] = useState<PracticeDraft | null>(
     null,
@@ -444,6 +445,7 @@ export default function Workspace() {
     cancelAI();
     setMode(nextMode);
     if (nextMode === "quick") {
+      if (tab === "Progress") setQuickHistoryOpen(!!selectedSession);
       if (mock) {
         if (mockRun)
           setMockRun(
@@ -832,9 +834,12 @@ export default function Workspace() {
       onRetry={retryPractice}
       onSelect={(session) => {
         setSelectedSession(session);
-        requestAnimationFrame(() =>
-          document.getElementById("saved-answer-detail")?.focus(),
-        );
+        setQuickHistoryOpen(true);
+        requestAnimationFrame(() => {
+          const detail = document.getElementById("saved-answer-detail");
+          detail?.focus({ preventScroll: true });
+          detail?.scrollIntoView({ block: "start" });
+        });
       }}
     />
   ) : null;
@@ -921,7 +926,10 @@ export default function Workspace() {
             <button
               disabled={busy || loading}
               aria-current={tab === "Progress" ? "page" : undefined}
-              onClick={() => changeTab("Progress")}
+              onClick={() => {
+                setQuickHistoryOpen(false);
+                changeTab("Progress");
+              }}
             >
               Saved answers{sessions.length > 0 ? ` (${sessions.length})` : ""}
             </button>
@@ -1094,8 +1102,12 @@ export default function Workspace() {
                 canSave={workspaceReady}
                 signedIn={signedIn}
                 sessions={sessions}
-                selected={selectedSession}
-                onSelect={setSelectedSession}
+                selected={quickHistoryOpen ? selectedSession : null}
+                onSelect={(session) => {
+                  setSelectedSession(session);
+                  setQuickHistoryOpen(true);
+                }}
+                onBack={() => setQuickHistoryOpen(false)}
                 onRetry={retryPractice}
                 onExport={sessionExport}
                 onDelete={(s) => remove(s.id, "session")}

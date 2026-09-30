@@ -2,6 +2,8 @@
 
 A private interview-preparation workspace for typed or voice practice, role and resume context, STAR stories, mock interviews, transparent feedback, and saved progress. Built-in coaching works without an AI provider. See [RESEARCH.md](RESEARCH.md) for feature sources and limitations.
 
+Recent changes are in [CHANGELOG.md](CHANGELOG.md); next priorities and commercial gaps are in [ROADMAP.md](ROADMAP.md).
+
 ## Quick start
 
 Requirements: Node.js 22.13 or newer (Node 24 LTS recommended) and npm. Use the checked-in package lock.
@@ -47,7 +49,7 @@ The GitHub Actions workflow runs the same quality checks on pushes and pull requ
 2. Type an answer, then choose Get feedback
 3. Read one next improvement; expand detailed feedback if useful
 4. Choose Try again to edit the answer as a fresh attempt. Earlier saved attempts remain in history
-5. Open Saved answers to revisit or retry any prior answer
+5. Open Saved answers and choose an answer to read it, export its review, or practice it again. Back to saved answers returns to the chosen row; the Saved answers tab also opens the list. Saved timestamps include the time so repeated questions are easier to distinguish
 
 Built-in feedback works for guests. Saving requires sign-in and an available workspace; the UI reports whether the answer is actually saved. Failed saves can be retried directly without duplicating the answer. Where supported, choosing Sign in keeps a temporary copy of the current practice answer in this tab for up to 30 minutes. On return, choose Resume answer or Discard draft. Resuming does not save anything to your account: review the answer and explicitly save it. If browser storage is unavailable or the app is embedded, download the draft or explicitly continue without it before navigation.
 
