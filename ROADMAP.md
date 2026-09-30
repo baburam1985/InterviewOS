@@ -26,6 +26,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Explained built-in practice suggestions, including category-specific rehearsal steps when all basic checks match; no target-role setup is required
 - Detailed reviews show actual keyword matches in bounded answer excerpts, non-matches and the word-count range; explanations use the scoring rules and avoid treating a match as proof of quality
 - Optional help in current and saved Quick reviews turns the next step into a placeholder starter or editing/rehearsal prompt, with no generated personal claims or automatic answer changes
+- Optional AI starts with profile/story sharing off; independent choices and a readable request preview disclose current unsaved profile fields and the first five saved stories before an explicit request
 - Portable local setup, synthetic-data tests, and a draft-PR CI gate
 
 The heuristic rubric checks English structure and detail. It does not validate factual correctness, measure job readiness, or predict hiring outcomes. Preserve that distinction in the UI and any future marketing.

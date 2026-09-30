@@ -56,6 +56,11 @@ import {
   rememberAnswerAttempt,
 } from "../lib/answer-refresh";
 import { workspaceExport } from "../lib/workspace-export";
+import { CoachingContext } from "../components/coaching-context";
+import {
+  coachingRequest,
+  type CoachingContextChoices,
+} from "../lib/coaching-context";
 import { CheckEvidence } from "../components/check-evidence";
 import { MockRecap } from "../components/mock-recap";
 import {
@@ -106,6 +111,10 @@ function time(n: number) {
   );
 }
 export default function Workspace() {
+  const [aiContext, setAiContext] = useState<CoachingContextChoices>({
+    profile: false,
+    stories: false,
+  });
   const [mode, setMode] = useState<"quick" | "advanced">("quick");
   const [quickStarted, setQuickStarted] = useState(false);
   const [quickGoal, setQuickGoal] = useState("Recruiter");
@@ -780,6 +789,14 @@ export default function Workspace() {
       setBusy(false);
     }
   }
+  const aiRequest = coachingRequest(
+    question,
+    answer,
+    category,
+    profile,
+    stories,
+    aiContext,
+  );
   async function askAI() {
     if (!aiEnabled || !aiAvailable || listening || aiAbort.current) return;
     setAiBusy(true);
@@ -790,13 +807,7 @@ export default function Workspace() {
       const d = await api<{ text: string }>("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question,
-          answer,
-          category,
-          profile,
-          stories: stories.slice(0, 5),
-        }),
+        body: JSON.stringify(aiRequest),
         signal: controller.signal,
       });
       if (aiAbort.current === controller && !controller.signal.aborted) {
@@ -1509,6 +1520,13 @@ export default function Workspace() {
                     )}
                     {aiAvailable && aiEnabled ? (
                       <>
+                        <CoachingContext
+                          choices={aiContext}
+                          request={aiRequest}
+                          storyCount={stories.length}
+                          busy={aiBusy}
+                          onChange={setAiContext}
+                        />
                         <button
                           className="primary full"
                           disabled={aiBusy || listening || !signedIn}
@@ -1518,8 +1536,8 @@ export default function Workspace() {
                           {aiBusy ? "Thinking…" : "Get AI coaching"}
                         </button>
                         <p className="micro-copy">
-                          Sends this answer, your role, resume, and up to five
-                          stories to OpenAI.
+                          Sends only the request context shown above. Provider
+                          usage may incur charges; coaching is advisory.
                         </p>
                       </>
                     ) : (
@@ -2128,6 +2146,7 @@ export default function Workspace() {
                       onChange={(e) => {
                         setAiEnabled(e.target.checked);
                         if (!e.target.checked) {
+                          setAiContext({ profile: false, stories: false });
                           cancelAI();
                           setAiText("");
                         }
@@ -2136,9 +2155,11 @@ export default function Workspace() {
                     Enable optional AI coaching
                   </label>
                   <p className="micro-copy">
-                    When you request AI coaching, your selected context is sent
-                    to OpenAI. The key stays on the server. Built-in guidance
-                    works without an account with an AI provider.
+                    Each AI request sends your question, answer and interview
+                    type to OpenAI. In the practice room, you can separately
+                    include your current profile and up to five saved stories,
+                    and review the contents before sending. Both start off. The
+                    key stays on the server. Built-in feedback works without AI.
                   </p>
                   <details>
                     <summary>AI setup and current scope</summary>
