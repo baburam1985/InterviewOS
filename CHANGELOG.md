@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Compare saved answers:** An optional collapsed comparison in Quick and Advanced shows complete answer text, save times and word counts for the selected answer and its nearest earlier same-question/category record. It keeps drafts unchanged, identifies identical text, and explains that save ordering is not a complete attempt history or evidence of improved quality
+- **Simpler local startup:** After dependency installation, `npm run dev:local` validates Node and dependencies, applies idempotent local migrations, and prints exact loopback practice and sign-in URLs. Port conflicts have a direct recovery command. A disposable startup/restart smoke test verifies local profile, story and answer persistence without touching normal workspace data
+
+- **Compare saved answers ([PR #16](https://github.com/baburam1985/InterviewOS/pull/16)):** An optional collapsed comparison in Quick and Advanced shows complete answer text, save times and word counts for the selected answer and its nearest earlier same-question/category record. It keeps drafts unchanged, identifies identical text, and explains that save ordering is not a complete attempt history or evidence of improved quality
 
 - **Choose AI context ([PR #15](https://github.com/baburam1985/InterviewOS/pull/15)):** Optional AI coaching shares only the question, answer and interview type by default. Profile and saved-story sharing are separate opt-ins, with a readable request preview, disclosure of unsaved profile fields, and choices that clear when AI is turned off. Opening settings or the preview sends nothing
 

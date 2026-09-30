@@ -10,11 +10,16 @@ Requirements: Node.js 22.13 or newer (Node 24 LTS recommended) and npm. Use the 
 
 ```sh
 npm ci
-npm run db:migrate:local
-npm run dev
+npm run dev:local
 ```
 
-Open `http://localhost:5173/signin-with-chatgpt?return_to=/` to enter the development-only synthetic account. Local records live in `.wrangler/state`; the migration command is idempotent, uses only local D1, and never touches the hosted database. You do not need Cloudflare credentials for this workflow.
+Open the sign-in URL printed in the terminal, normally `http://127.0.0.1:5173/signin-with-chatgpt?return_to=/`, to enter the development-only synthetic account. Or open `http://127.0.0.1:5173/` to try guest practice. This account is local to this checkout; it is not your hosted account.
+
+`dev:local` checks the Node version and installed tools, applies pending local migrations, and starts a loopback-only server. Local records live in `.wrangler/state` and survive Ctrl+C and restarting the same command. Migrations are idempotent and do not reset records or touch the hosted database. You do not need Cloudflare credentials. Use the same printed hostname each time so browser sign-in and temporary practice handoffs stay in the same browser origin. Save or export unsaved work before stopping or reloading.
+
+If port 5173 is occupied, stop the other server or use `npm run dev:local -- --port 5174`, then open the newly printed URL. The app never silently moves to another port. `npm run dev:local -- --help` explains the options. Missing dependencies prompt `npm ci`; unsupported Node versions prompt an upgrade before starting tools.
+
+For separate migration/framework commands, `npm run db:migrate:local` followed by `npm run dev` remains available. Managed preview checkouts should keep using `npm run dev`; `dev:local` intentionally refuses that execution profile instead of changing its authentication or hosting configuration.
 
 If your execution environment cannot write npm's default cache, select a writable cache, for example `npm ci --cache /tmp/interviewos-npm-cache`.
 
@@ -29,9 +34,12 @@ Individual commands:
 
 - `npm run lint`
 - `npm run typecheck`
+- `npm run test:startup`
 - `npm run test:unit`
 - `npm run test:e2e`
 - `npm run build`
+
+`npm run check` includes a real local-start smoke test: it copies an allowlisted set of application files into a temporary directory, links installed dependencies, starts the actual local command, saves synthetic profile/story/answer records, verifies an occupied-port failure, and restarts to confirm persistence. It does not copy `.env` files, credentials, normal records or the checkout execution profile. Only the temporary fixture is removed.
 
 Playwright starts its own loopback-only server on port 4173 and creates an isolated synthetic database in `.wrangler/test-state`. It never reuses the normal development database or a running server. Test state is reset at the start of each run. No live microphone, AI provider, real account, or production data is needed. Failures retain screenshots and traces in `test-results/`; open the HTML report with `npx playwright show-report`.
 
