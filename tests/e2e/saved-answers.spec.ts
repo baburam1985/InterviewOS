@@ -110,6 +110,10 @@ test("keyboard history navigation keeps the active draft and supports a cancelle
   ).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(
+    page.getByLabel("Search saved answers", { exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
     page.locator(".quick-history-list > button").first(),
   ).toBeFocused();
   await page.keyboard.press("Enter");

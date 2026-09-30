@@ -104,6 +104,7 @@ export default function Workspace() {
   const [quickStarted, setQuickStarted] = useState(false);
   const [quickGoal, setQuickGoal] = useState("Recruiter");
   const [quickHistoryOpen, setQuickHistoryOpen] = useState(false);
+  const [quickHistorySearch, setQuickHistorySearch] = useState("");
   const [practiceFocus, setPracticeFocus] = useState("");
   const [answerSaveUnconfirmed, setAnswerSaveUnconfirmed] = useState(false);
   const [pendingPractice, setPendingPractice] = useState<PracticeDraft | null>(
@@ -1100,6 +1101,8 @@ export default function Workspace() {
             )}
             {mode === "quick" && tab === "Progress" && (
               <QuickHistory
+                search={quickHistorySearch}
+                onSearch={setQuickHistorySearch}
                 canSave={workspaceReady}
                 signedIn={signedIn}
                 sessions={sessions}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   ArrowRight,
   Check,
@@ -15,6 +15,7 @@ import {
 import type { Review, Session } from "../lib/interview";
 import { feedbackReason } from "../lib/interview";
 import { FeedbackHelp } from "./feedback-help";
+import { findSavedAnswers } from "../lib/saved-answer-search";
 
 export const practiceGoals = [
   {
@@ -365,6 +366,8 @@ export function QuickPractice(props: Props) {
 }
 
 export function QuickHistory({
+  search,
+  onSearch,
   canSave,
   signedIn,
   sessions,
@@ -378,6 +381,8 @@ export function QuickHistory({
   detailedReview,
   recap,
 }: {
+  search: string;
+  onSearch: (search: string) => void;
   canSave: boolean;
   signedIn: boolean;
   sessions: Session[];
@@ -392,10 +397,19 @@ export function QuickHistory({
   recap?: React.ReactNode;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
   const detail = useRef<HTMLDivElement>(null);
   const answerButtons = useRef(new Map<string, HTMLButtonElement>());
   const lastSelectedId = useRef<string | null>(null);
   const selectedId = selected?.id;
+  const matches = useMemo(
+    () => findSavedAnswers(sessions, search),
+    [sessions, search],
+  );
+  function clearSearch() {
+    onSearch("");
+    searchInput.current?.focus();
+  }
   useEffect(() => {
     if (selectedId) {
       lastSelectedId.current = selectedId;
@@ -500,26 +514,63 @@ export function QuickHistory({
           </button>
         </div>
       ) : (
-        <div className="quick-history-list" aria-label="Saved answers">
-          {sessions.map((session) => (
-            <button
-              key={session.id}
-              ref={(button) => {
-                if (button) answerButtons.current.set(session.id, button);
-                else answerButtons.current.delete(session.id);
-              }}
-              onClick={() => onSelect(session)}
+        <>
+          <div className="history-search">
+            <label htmlFor="saved-answer-search">Search saved answers</label>
+            <div className="history-search-controls">
+              <input
+                ref={searchInput}
+                id="saved-answer-search"
+                type="search"
+                maxLength={200}
+                value={search}
+                onChange={(event) => onSearch(event.target.value)}
+                placeholder="Question, answer text, or category"
+                aria-describedby="saved-answer-results"
+              />
+              {search && <button onClick={clearSearch}>Clear search</button>}
+            </div>
+            <p
+              id="saved-answer-results"
+              className="micro-copy"
+              role="status"
+              aria-label="Search results"
             >
-              <span>
-                <strong>{session.question}</strong>
-                <small>
-                  Saved {savedTime(session)} · {session.category}
-                </small>
-              </span>
-              <ChevronRight size={16} aria-hidden="true" />
-            </button>
-          ))}
-        </div>
+              Showing {matches.length} of {sessions.length} saved answers
+            </p>
+          </div>
+          {!matches.length ? (
+            <div className="card quick-empty">
+              <h2>No matching answers.</h2>
+              <p>
+                Try a different word or clear your search to see every saved
+                answer.
+              </p>
+            </div>
+          ) : (
+            <div className="quick-history-list" aria-label="Saved answers">
+              {matches.map(({ session, preview }) => (
+                <button
+                  key={session.id}
+                  ref={(button) => {
+                    if (button) answerButtons.current.set(session.id, button);
+                    else answerButtons.current.delete(session.id);
+                  }}
+                  onClick={() => onSelect(session)}
+                >
+                  <span>
+                    <strong>{session.question}</strong>
+                    <small>
+                      Saved {savedTime(session)} · {session.category}
+                    </small>
+                    <span className="quick-answer-preview">{preview}</span>
+                  </span>
+                  <ChevronRight size={16} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </section>
   );
