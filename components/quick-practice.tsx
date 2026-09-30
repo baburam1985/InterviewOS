@@ -72,12 +72,16 @@ type Props = {
 
 export function QuickPractice(props: Props) {
   const answerInput = useRef<HTMLTextAreaElement>(null);
+  const questionHeading = useRef<HTMLHeadingElement>(null);
   const feedbackHeading = useRef<HTMLHeadingElement>(null);
   const hasReview = !!props.review;
   useEffect(() => {
     if (hasReview) feedbackHeading.current?.focus({ preventScroll: true });
-    else if (props.started) answerInput.current?.focus({ preventScroll: true });
-  }, [props.started, hasReview]);
+    else if (props.started) {
+      answerInput.current?.focus({ preventScroll: true });
+      questionHeading.current?.scrollIntoView({ block: "nearest" });
+    }
+  }, [props.started, hasReview, props.question]);
   if (!props.started)
     return (
       <section className="quick-welcome" aria-label="Start a practice">
@@ -214,7 +218,13 @@ export function QuickPractice(props: Props) {
         </button>
       </div>
       <div className="card quick-answer-card">
-        <h1 className="quick-question">{props.question}</h1>
+        <h1
+          className="quick-question"
+          id="quick-question-text"
+          ref={questionHeading}
+        >
+          {props.question}
+        </h1>
         {props.focus ? (
           <div className="quick-focus">
             <strong>Focus for this attempt</strong>
@@ -230,6 +240,7 @@ export function QuickPractice(props: Props) {
         <textarea
           ref={answerInput}
           id="quick-answer"
+          aria-describedby="quick-question-text"
           value={props.answer}
           maxLength={30000}
           disabled={props.listening}
@@ -264,6 +275,13 @@ export function QuickPractice(props: Props) {
             You can edit your answer before continuing.
           </span>
         </div>
+        <button
+          className="text-button quick-next-question"
+          disabled={props.busy || props.listening}
+          onClick={props.onNext}
+        >
+          Try another question <ChevronRight size={16} />
+        </button>
         <details className="quick-details">
           <summary>More options</summary>
           <div className="actions">

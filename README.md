@@ -46,7 +46,7 @@ The GitHub Actions workflow runs the same quality checks on pushes and pull requ
 **Advanced workspace is always one switch away.** It includes role/resume context, STAR stories, the complete question bank, technical/system-design practice, five-question mocks, timers, progress charts, workspace export, and optional AI. Switching modes keeps current answers, reviews, profiles, stories, and saved history. Switching into Quick practice ends any active mock sequence while preserving its current answer and saved reviews.
 
 1. In Quick practice, select Start practicing with the default goal or choose another goal
-2. Type an answer, then choose Get feedback
+2. Type an answer, then choose Get feedback. If a question does not fit, Try another question stays within the same goal and asks before replacing any unsaved answer
 3. Read one next improvement; expand detailed feedback if useful
 4. Choose Try again to edit the answer as a fresh attempt. Earlier saved attempts remain in history
 5. Open Saved answers and choose an answer to read it, export its review, or practice it again. Back to saved answers returns to the chosen row; the Saved answers tab also opens the list. Saved timestamps include the time so repeated questions are easier to distinguish
