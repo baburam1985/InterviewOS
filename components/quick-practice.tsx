@@ -13,6 +13,7 @@ import {
   Volume2,
 } from "lucide-react";
 import type { Review, Session } from "../lib/interview";
+import { feedbackReason } from "../lib/interview";
 
 export const practiceGoals = [
   {
@@ -87,9 +88,7 @@ export function QuickPractice(props: Props) {
         </div>
         <div className="card quick-start-card">
           <h2>What would you like to practice?</h2>
-          <p className="muted">
-            Pick a goal, or start with the selected question.
-          </p>
+          <p className="muted">Pick a goal, or keep the selected one.</p>
           <div
             className="quick-goals"
             role="radiogroup"
@@ -141,7 +140,7 @@ export function QuickPractice(props: Props) {
         <div className="quick-intro">
           <span className="eyebrow">A SMALL STEP FORWARD</span>
           <h1 ref={feedbackHeading} tabIndex={-1}>
-            Here’s your next improvement.
+            Your next practice step.
           </h1>
         </div>
         <div className="card quick-feedback">
@@ -158,7 +157,9 @@ export function QuickPractice(props: Props) {
           </p>
           <h2>One thing to try</h2>
           <p className="quick-next-step">{props.review.next}</p>
-          <p className="muted">Try it in the same answer while it’s fresh.</p>
+          <p className="muted quick-feedback-reason">
+            {feedbackReason(props.review)}
+          </p>
           {!props.saved && props.canSave && (
             <button className="primary quick-primary" onClick={props.onReview}>
               Retry saving answer <Check size={17} />
@@ -397,6 +398,9 @@ export function QuickHistory({
                 <h2>{selected.question}</h2>
                 <h3>One thing to try</h3>
                 <p className="quick-next-step">{selected.review.next}</p>
+                <p className="muted quick-feedback-reason">
+                  {feedbackReason(selected.review)}
+                </p>
                 <button
                   className="primary quick-primary"
                   onClick={() => onRetry(selected)}

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {categories, emptyProfile, evaluate, guidance, questions} from '../../lib/interview.ts';
+import {categories, emptyProfile, evaluate, feedbackReason, guidance, questions} from '../../lib/interview.ts';
 
 const detail = ' I can explain the decision and the supporting context clearly.'.repeat(5);
 
@@ -95,4 +95,50 @@ test('guidance selects relevant real stories and matches each four-step framewor
     assert.equal(result.labels.length, result.steps.length);
     assert.ok(result.steps.every(step => step.length > 0));
   }
+});
+
+
+test("all-pass next steps fit each practice category without requiring target-role setup", () => {
+  const complete =
+    "When my team started the project, I led the work and first tested an approach because the result reduced failures for 20 customers. Thank you for the opportunity. My priority is flexibility because of my experience. Could we discuss a request and confirm the next step? My background includes building products and I am interested in learning more. I clarify input requirements, use a hash map algorithm, compare time complexity, and test empty input and failure cases.";
+  const expected = {
+    Technical: /test case.*solution/,
+    "System design": /failure scenario.*recover/,
+    Negotiation: /request.*next step/,
+    Recruiter: /answer.*experience and interests/,
+    Behavioral: /own decisions.*outcome/,
+    Leadership: /own decisions.*outcome/,
+    "Role-specific": /own decisions.*outcome/,
+  };
+  for (const category of categories) {
+    const review = evaluate(complete, 0, category);
+    assert.equal(review.score, 100, category);
+    assert.match(review.next, expected[category]);
+    assert.doesNotMatch(review.next, /target role|add.*role|resume|configure/i);
+    assert.equal(
+      feedbackReason(review),
+      "All basic checks passed. Rehearse for clarity and check the details yourself.",
+    );
+  }
+});
+
+test("feedback explains the first unmatched signal without claiming an omitted fact", () => {
+  const review = evaluate("I tested a prototype.", 0, "Behavioral");
+  const first = review.checks.find((check) => !check.pass);
+  assert.ok(first);
+  assert.equal(review.next, first.advice);
+  assert.ok(feedbackReason(review).includes(first.label));
+  assert.match(feedbackReason(review), /built-in check.*may miss nuance/);
+  assert.doesNotMatch(
+    feedbackReason(review),
+    /you (failed|forgot|omitted|did not)/i,
+  );
+});
+
+
+test('length advice is identified as a built-in rule rather than a keyword search', () => {
+  const review = evaluate('During a project, I led a team. First I tested because it reduced failures by 20%.', 0, 'Behavioral');
+  assert.deepEqual(review.checks.filter(check => !check.pass).map(check => check.label), ['Keeps a useful length']);
+  assert.match(feedbackReason(review), /Keeps a useful length.*built-in check/);
+  assert.doesNotMatch(feedbackReason(review), /keyword/);
 });

@@ -341,3 +341,24 @@ test('cancelling a coaching request also aborts the upstream provider request', 
   assert.equal((await coach.POST(request('/api/coach', coaching, {signal: controller.signal}))).status, 502);
   assert.equal(providerSignal.aborted, true);
 });
+
+
+test("saved and reloaded all-pass feedback does not require a missing profile", async () => {
+  const answer =
+    "During a project our team faced unclear requirements. I owned the release testing strategy and needed to improve quality. First I analyzed the highest risk flows because we had limited time. Then I implemented a focused test plan, reviewed it with the team, and prioritized the most important scenarios. As a result, we reduced escaped defects by 35 percent over six weeks. I learned to align stakeholders early.";
+  const response = await workspace.POST(
+    request("/api/workspace", {
+      kind: "session",
+      data: { ...session, answer },
+    }),
+  );
+  assert.equal(response.status, 200);
+  const saved = await response.json();
+  assert.equal(saved.data.review.score, 100);
+  assert.match(saved.data.review.next, /own decisions.*outcome/);
+  assert.doesNotMatch(saved.data.review.next, /target role|resume/i);
+  const loaded = await (await workspace.GET()).json();
+  assert.equal(loaded.records.length, 1);
+  assert.equal(loaded.records[0].kind, "session");
+  assert.equal(loaded.records[0].data.review.next, saved.data.review.next);
+});

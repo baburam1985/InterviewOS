@@ -343,9 +343,19 @@ export function evaluate(
         ? "Develop your answer beyond a few sentences."
         : "Trim repeated context and keep the focus on your contribution.",
   });
-  const next =
-    checks.find((c) => !c.pass)?.advice ||
-    "Rehearse once more and make the link to the target role explicit.";
+  // Passing keyword checks is a reason to rehearse, not to invent a missing
+  // requirement (such as a target role the user was never asked to provide).
+  const rehearsalStep =
+    category === "Technical"
+      ? "Walk through one concrete test case and check each step of your solution yourself."
+      : category === "System design"
+        ? "Pick one failure scenario and explain how your design would recover."
+        : category === "Negotiation"
+          ? "Rehearse your request once more and check that the next step is clear."
+          : category === "Recruiter"
+            ? "Say your answer once more, keeping your experience and interests easy to follow."
+            : "Rehearse once more, keeping your own decisions and the outcome easy to follow.";
+  const next = checks.find((c) => !c.pass)?.advice || rehearsalStep;
   return {
     score: Math.round(
       (checks.filter((c) => c.pass).length / checks.length) * 100,
@@ -357,6 +367,14 @@ export function evaluate(
     next,
   };
 }
+/** Explain a suggestion without treating rule matches as proof of accuracy. */
+export function feedbackReason(review: Review): string {
+  const undetected = review.checks.find((check) => !check.pass);
+  return undetected
+    ? `Suggested by the “${undetected.label}” built-in check. It may miss nuance in your answer.`
+    : "All basic checks passed. Rehearse for clarity and check the details yourself.";
+}
+
 export function guidance(
   category: string,
   profile: Profile,

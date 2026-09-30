@@ -22,6 +22,9 @@ test("quick practice is the default and retry creates a distinct saved attempt",
     page.getByRole("button", { name: "Quick practice", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(
+    page.getByText("Pick a goal, or keep the selected one.", { exact: true }),
+  ).toBeVisible();
+  await expect(
     page.getByRole("radiogroup", { name: "Practice goal" }),
   ).toBeVisible();
   await expect(
@@ -43,7 +46,7 @@ test("quick practice is the default and retry creates a distinct saved attempt",
   await page.getByLabel("Your answer", { exact: true }).fill(answer);
   await page.getByRole("button", { name: "Get feedback", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Here’s your next improvement." }),
+    page.getByRole("heading", { name: "Your next practice step." }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "One thing to try", exact: true }),
@@ -57,6 +60,17 @@ test("quick practice is the default and retry creates a distinct saved attempt",
   expect(first.records).toHaveLength(1);
   expect(first.records[0].kind).toBe("session");
   expect(first.records[0].data.category).toBe("Recruiter");
+  expect(first.records[0].data.review.score).toBe(100);
+  expect(improvement).toMatch(/answer.*experience and interests/);
+  expect(improvement).not.toMatch(/target role|resume|configure/i);
+  await expect(page.locator(".quick-feedback-reason")).toHaveText(
+    "All basic checks passed. Rehearse for clarity and check the details yourself.",
+  );
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Answer and review saved to your progress." }),
+  ).toHaveCount(0);
   await expect(page.locator(".review")).not.toBeVisible();
   await page.getByText("See detailed feedback", { exact: true }).click();
   await expect(page.locator(".review")).toBeVisible();
@@ -128,13 +142,23 @@ test("mode switches preserve an unsaved draft and its later saved review", async
   await expect(
     page.getByRole("button", { name: "Update review" }),
   ).toBeVisible();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Answer and review saved to your progress." }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Quick practice", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Here’s your next improvement." }),
+    page.getByRole("heading", { name: "Your next practice step." }),
   ).toBeVisible();
   await expect(page.locator(".quick-next-step")).toHaveText(improvement);
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Answer and review saved to your progress." }),
+  ).toHaveCount(0);
   await expect(page.locator(".quick-saved")).toHaveText(
     "Saved to your history",
   );
@@ -437,4 +461,39 @@ test("changing goals can cancel replacement and resume the current draft", async
     .click();
   await expect(page.locator(".quick-question")).not.toHaveText(question);
   await expect(page.getByLabel("Your answer", { exact: true })).toBeEmpty();
+});
+
+test("quick feedback identifies an unmatched keyword check without inventing missing context", async ({
+  page,
+}) => {
+  await openQuickWorkspace(page);
+  await page
+    .getByRole("button", { name: "Start practicing", exact: true })
+    .click();
+  await page
+    .getByLabel("Your answer", { exact: true })
+    .fill("I helped with a project.");
+  await page.getByRole("button", { name: "Get feedback", exact: true }).click();
+  await expect(page.locator(".quick-saved")).toHaveText(
+    "Saved to your history",
+  );
+  const { records } = await (await page.request.get("/api/workspace")).json();
+  expect(records).toHaveLength(1);
+  const review = records[0].data.review;
+  const first = review.checks.find((check: { pass: boolean }) => !check.pass);
+  expect(first).toBeTruthy();
+  await expect(page.locator(".quick-next-step")).toHaveText(first.advice);
+  await expect(page.locator(".quick-feedback-reason")).toContainText(
+    first.label,
+  );
+  await expect(page.locator(".quick-feedback-reason")).toContainText(
+    "may miss nuance",
+  );
+  await page
+    .getByRole("button", { name: "Saved answers (1)", exact: true })
+    .click();
+  await page.locator(".quick-history-list > button").click();
+  await expect(page.locator(".quick-feedback-reason")).toContainText(
+    first.label,
+  );
 });

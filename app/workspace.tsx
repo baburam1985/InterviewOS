@@ -45,6 +45,8 @@ type WorkspaceRecord =
   | { kind: "story"; data: Story }
   | { kind: "session"; data: Session };
 
+const ANSWER_SAVED_NOTICE = "Answer and review saved to your progress.";
+
 const navigation = [
   ["Practice room", Play],
   ["Story library", BookOpen],
@@ -481,7 +483,7 @@ export default function Workspace() {
       setReview(result.data.review);
       setSavedId(s.id);
       if (mock) mockSaved.current.add(s.id);
-      setNotice("Answer and review saved to your progress.");
+      setNotice(ANSWER_SAVED_NOTICE);
     }
   }
   function openStory(story: Story) {
@@ -777,17 +779,25 @@ export default function Workspace() {
               Loading your saved workspace…
             </div>
           )}
-          {notice && (
-            <div className="banner" role="status">
-              <span>{notice}</span>
-              <button
-                onClick={() => setNotice("")}
-                aria-label="Dismiss notification"
-              >
-                ×
-              </button>
-            </div>
-          )}
+          {notice &&
+            !(
+              notice === ANSWER_SAVED_NOTICE &&
+              mode === "quick" &&
+              isRoom &&
+              quickStarted &&
+              review &&
+              savedId
+            ) && (
+              <div className="banner" role="status">
+                <span>{notice}</span>
+                <button
+                  onClick={() => setNotice("")}
+                  aria-label="Dismiss notification"
+                >
+                  ×
+                </button>
+              </div>
+            )}
           {!signedIn && (
             <div className="banner">
               <span>
