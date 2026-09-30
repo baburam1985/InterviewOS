@@ -45,6 +45,16 @@ import {
   type PracticeDraft,
 } from "../lib/practice-handoff";
 import { QuickPractice, QuickHistory } from "../components/quick-practice";
+import { MockRecap } from "../components/mock-recap";
+import {
+  beginMockRun,
+  captureMockAnswer,
+  advanceMockRun,
+  endMockRun,
+  recordMockSave,
+  describeMockRun,
+  type MockRun,
+} from "../lib/mock-practice";
 import type { SpeechRecognition, SpeechWindow } from "../lib/speech";
 type WorkspaceRecord =
   | { kind: "profile"; data: Profile }
@@ -97,6 +107,7 @@ export default function Workspace() {
     null,
   );
   const [signInDraftError, setSignInDraftError] = useState("");
+  const [mockRun, setMockRun] = useState<MockRun | null>(null);
   const signInNavigation = useRef(false);
   const [tab, setTab] = useState("Practice room"),
     [profile, setProfile] = useState<Profile>(emptyProfile),
@@ -128,7 +139,6 @@ export default function Workspace() {
   const recognition = useRef<SpeechRecognition | null>(null),
     busyRef = useRef(false),
     mockQuestions = useRef<{ text: string; category: string }[]>([]),
-    mockSaved = useRef(new Set<string>()),
     voiceStart = useRef(0),
     activeVoice = useRef(false),
     aiAbort = useRef<AbortController | null>(null),
@@ -379,6 +389,10 @@ export default function Workspace() {
       !window.confirm("Replace this unsaved answer?")
     )
       return false;
+    if (mockRun?.activeAnswer) {
+      const captured = captureMockAnswer(mockRun, answer, savedId);
+      setMockRun(continueMock ? captured : endMockRun(captured, false, false));
+    }
     discardVoice();
     cancelAI();
     window.speechSynthesis?.cancel();
@@ -431,6 +445,10 @@ export default function Workspace() {
     setMode(nextMode);
     if (nextMode === "quick") {
       if (mock) {
+        if (mockRun)
+          setMockRun(
+            endMockRun(captureMockAnswer(mockRun, answer, savedId), false),
+          );
         setMock(false);
         setNotice(
           "Mock interview ended. Your current answer and saved history are kept.",
@@ -481,7 +499,12 @@ export default function Workspace() {
     if (mock) {
       stopVoice();
       cancelAI();
+      if (mockRun)
+        setMockRun(
+          endMockRun(captureMockAnswer(mockRun, answer, savedId), false),
+        );
       setMock(false);
+      setTab("Progress");
       setNotice(
         "Mock interview ended. Your current answer is still here; saved answers are in Progress.",
       );
@@ -498,7 +521,7 @@ export default function Workspace() {
     ].slice(0, 5);
     if (!resetQuestion(sequence[0].text, sequence[0].category, true)) return;
     mockQuestions.current = sequence;
-    mockSaved.current.clear();
+    setMockRun(beginMockRun(sequence));
     setMock(true);
     setRound(1);
     setNotice(
@@ -506,15 +529,24 @@ export default function Workspace() {
     );
   }
   function next() {
+    if (listening) {
+      stopVoice();
+      setNotice("Microphone stopped. Check your transcript before continuing.");
+      return;
+    }
     if (mock && round >= mockQuestions.current.length) {
       if (answerDirty && !window.confirm("Finish without saving this answer?"))
         return;
       discardVoice();
       cancelAI();
+      const finished = mockRun
+        ? endMockRun(captureMockAnswer(mockRun, answer, savedId), true)
+        : null;
+      if (finished) setMockRun(finished);
       setMock(false);
       setTab("Progress");
       setNotice(
-        `Mock interview complete. ${mockSaved.current.size} of ${mockQuestions.current.length} answers saved to Progress.`,
+        `Mock interview complete. ${finished ? describeMockRun(finished, sessions).savedCount : 0} of ${mockQuestions.current.length} answers saved to Progress.`,
       );
       return;
     }
@@ -525,8 +557,10 @@ export default function Workspace() {
       ? round - 1
       : items.findIndex((q) => q.text === question);
     const nextQuestion = items[(index + 1) % items.length];
-    if (resetQuestion(nextQuestion.text, nextQuestion.category, mock) && mock)
+    if (resetQuestion(nextQuestion.text, nextQuestion.category, mock) && mock) {
+      setMockRun((run) => (run ? advanceMockRun(run) : run));
       setRound((r) => r + 1);
+    }
   }
   async function save<T extends Profile | Story | Omit<Session, "review">>(
     kind: string,
@@ -585,7 +619,7 @@ export default function Workspace() {
       );
       setReview(result.data.review);
       setSavedId(s.id);
-      if (mock) mockSaved.current.add(s.id);
+      setMockRun((run) => (run ? recordMockSave(run, result.data) : run));
       setNotice(ANSWER_SAVED_NOTICE);
     }
   }
@@ -630,7 +664,6 @@ export default function Workspace() {
         setSessions((s) => s.filter((x) => x.id !== id));
         setSelectedSession(null);
         if (savedId === id) setSavedId("");
-        mockSaved.current.delete(id);
       }
       setNotice("Deleted.");
     } catch (e) {
@@ -787,6 +820,24 @@ export default function Workspace() {
     );
   }
   const isRoom = tab === "Practice room" || tab === "Technical lab";
+  const visibleMockRun = mockRun?.ended
+    ? captureMockAnswer(mockRun, answer, savedId)
+    : null;
+  const recap = visibleMockRun ? (
+    <MockRecap
+      run={visibleMockRun}
+      sessions={sessions}
+      currentDraft={visibleMockRun.activeAnswer && answerDirty}
+      onReturn={showQuickPractice}
+      onRetry={retryPractice}
+      onSelect={(session) => {
+        setSelectedSession(session);
+        requestAnimationFrame(() =>
+          document.getElementById("saved-answer-detail")?.focus(),
+        );
+      }}
+    />
+  ) : null;
   return (
     <div
       className={"shell " + (mode === "quick" ? "quick-mode" : "advanced-mode")}
@@ -1049,6 +1100,7 @@ export default function Workspace() {
                 onExport={sessionExport}
                 onDelete={(s) => remove(s.id, "session")}
                 onPractice={showQuickPractice}
+                recap={recap}
                 detailedReview={
                   selectedSession ? (
                     <ReviewPanel review={selectedSession.review} />
@@ -1737,6 +1789,7 @@ export default function Workspace() {
                     </button>
                   }
                 />
+                {recap}
                 <div className="stats">
                   <div className="card">
                     <small>Answers practiced</small>
@@ -1814,7 +1867,11 @@ export default function Workspace() {
                           </button>
                         ))}
                       </div>
-                      <div className="card">
+                      <div
+                        className="card"
+                        id="saved-answer-detail"
+                        tabIndex={-1}
+                      >
                         {selectedSession ? (
                           <>
                             <div className="section-heading">

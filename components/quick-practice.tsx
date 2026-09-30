@@ -332,6 +332,7 @@ export function QuickHistory({
   onDelete,
   onPractice,
   detailedReview,
+  recap,
 }: {
   canSave: boolean;
   signedIn: boolean;
@@ -343,6 +344,7 @@ export function QuickHistory({
   onDelete: (session: Session) => void;
   onPractice: () => void;
   detailedReview: React.ReactNode;
+  recap?: React.ReactNode;
 }) {
   return (
     <section className="quick-session">
@@ -351,6 +353,7 @@ export function QuickHistory({
         <h1>Your saved answers.</h1>
         <p>Revisit an answer, then work on one useful improvement.</p>
       </div>
+      {recap}
       {!sessions.length ? (
         <div className="card quick-empty">
           <Play size={28} />
@@ -389,7 +392,7 @@ export function QuickHistory({
               </button>
             ))}
           </div>
-          <div className="card">
+          <div className="card" id="saved-answer-detail" tabIndex={-1}>
             {selected ? (
               <>
                 <p className="quick-saved">

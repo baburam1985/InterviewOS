@@ -258,6 +258,38 @@ test("a mock in a short category completes five unique saved rounds", async ({
     page.getByRole("status").filter({ hasText: "Mock interview complete" }),
   ).toBeVisible();
   await expect(page.locator(".history-row")).toHaveCount(5);
+  const recap = page.getByRole("region", { name: "Mock interview recap" });
+  await expect(recap).toContainText("5 of 5 answers saved");
+  await expect(recap.locator(".mock-round-status")).toHaveText(
+    Array(5).fill("Saved"),
+  );
+  await recap
+    .getByRole("button", { name: "View saved answer 2", exact: true })
+    .click();
+  await expect(page.locator("#saved-answer-detail")).toBeFocused();
+  await expect(
+    page.locator("#saved-answer-detail .saved-answer"),
+  ).toContainText("synthetic round 2");
+  await recap
+    .getByRole("button", { name: "Practice this next", exact: true })
+    .click();
+  await expect(page.getByLabel("Your answer", { exact: true })).not.toBeEmpty();
+  await expect(
+    page.getByRole("button", { name: "Start mock interview", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Review & save", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Update review", exact: true }),
+  ).toBeVisible();
+  await tab(page, "Progress");
+  await expect(page.locator(".history-row")).toHaveCount(6);
+  await expect(recap).toContainText("5 of 5 answers saved");
+  await page.reload();
+  await tab(page, "Progress");
+  await expect(recap).toHaveCount(0);
+  await expect(page.locator(".history-row")).toHaveCount(6);
 });
 
 test("a failed save preserves the draft and retry saves exactly once", async ({
