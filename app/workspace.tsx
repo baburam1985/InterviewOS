@@ -38,6 +38,7 @@ import {
   capabilities,
 } from "../lib/interview";
 import { api, ApiError } from "../lib/client-api";
+import { QuickPractice, QuickHistory } from "../components/quick-practice";
 import type { SpeechRecognition, SpeechWindow } from "../lib/speech";
 type WorkspaceRecord =
   | { kind: "profile"; data: Profile }
@@ -80,6 +81,10 @@ function time(n: number) {
   );
 }
 export default function Workspace() {
+  const [mode, setMode] = useState<"quick" | "advanced">("quick");
+  const [quickStarted, setQuickStarted] = useState(false);
+  const [quickGoal, setQuickGoal] = useState("Recruiter");
+  const [practiceFocus, setPracticeFocus] = useState("");
   const [tab, setTab] = useState("Practice room"),
     [profile, setProfile] = useState<Profile>(emptyProfile),
     [stories, setStories] = useState<Story[]>([]),
@@ -256,13 +261,23 @@ export default function Workspace() {
     setInterim("");
     setRunning(false);
   }
-  function resetQuestion(q: string, c: string, continueMock = false) {
+  function resetQuestion(
+    q: string,
+    c: string,
+    continueMock = false,
+    retainsAnswer = false,
+  ) {
     if (busyRef.current) return false;
-    if (answerDirty && !window.confirm("Replace this unsaved answer?"))
+    if (
+      answerDirty &&
+      !retainsAnswer &&
+      !window.confirm("Replace this unsaved answer?")
+    )
       return false;
     discardVoice();
     cancelAI();
     window.speechSynthesis?.cancel();
+    setPracticeFocus("");
     setQuestion(q);
     setCategory(c);
     setAnswer("");
@@ -303,6 +318,59 @@ export default function Workspace() {
       window.speechSynthesis?.cancel();
     }
     setTab(t);
+  }
+  function switchMode(nextMode: "quick" | "advanced") {
+    if (busyRef.current || loading) return;
+    stopVoice();
+    cancelAI();
+    setMode(nextMode);
+    if (nextMode === "quick") {
+      if (mock) {
+        setMock(false);
+        setNotice(
+          "Mock interview ended. Your current answer and saved history are kept.",
+        );
+      }
+      setQuickStarted((current) => current || !!answer.trim() || !!review);
+      if (tab !== "Progress")
+        setTab(
+          ["Technical", "System design"].includes(category)
+            ? "Technical lab"
+            : "Practice room",
+        );
+    }
+  }
+  function startQuickPractice() {
+    const nextQuestion = bank.find((q) => q.category === quickGoal)!;
+    if (!resetQuestion(nextQuestion.text, nextQuestion.category)) return;
+    setQuickStarted(true);
+    setTab(quickGoal === "Technical" ? "Technical lab" : "Practice room");
+  }
+  function retryPractice(session?: Session) {
+    const previous = session ?? { question, category, answer, review };
+    if (!resetQuestion(previous.question, previous.category, false, !session))
+      return;
+    setAnswer(previous.answer);
+    setPracticeFocus(
+      previous.review?.next ||
+        "Make one clear improvement, then practice again.",
+    );
+    setQuickStarted(true);
+    setTab(
+      ["Technical", "System design"].includes(previous.category)
+        ? "Technical lab"
+        : "Practice room",
+    );
+  }
+  function showQuickPractice() {
+    if (answer.trim() || review) setQuickStarted(true);
+    stopVoice();
+    cancelAI();
+    setTab(
+      ["Technical", "System design"].includes(category)
+        ? "Technical lab"
+        : "Practice room",
+    );
   }
   function toggleMock() {
     if (mock) {
@@ -382,6 +450,14 @@ export default function Workspace() {
     stopVoice();
     const r = evaluate(answer, voiceOnly ? voiceSeconds : 0, category);
     setReview(r);
+    if (!workspaceReady) {
+      setNotice(
+        signedIn
+          ? "Feedback ready. This answer is not saved; retry loading your workspace to save it."
+          : "Feedback ready. Sign in if you want to save this answer, or export it now.",
+      );
+      return;
+    }
     sessionId.current ||= crypto.randomUUID();
     const s: Session = {
       id: sessionId.current,
@@ -607,52 +683,94 @@ export default function Workspace() {
   }
   const isRoom = tab === "Practice room" || tab === "Technical lab";
   return (
-    <div className="shell">
-      <aside>
-        <div className="brand">
-          <AudioLines /> Interview<span>OS</span>
-        </div>
-        <div className="workspace-label">YOUR WORKSPACE</div>
-        <nav>
-          {navigation.map(([label, Icon]) => (
-            <button
-              key={label}
-              disabled={busy || loading}
-              aria-current={label === tab ? "page" : undefined}
-              onClick={() => changeTab(label)}
-              className={label === tab ? "selected" : ""}
-            >
-              <Icon size={18} />
-              {label}
-            </button>
-          ))}
-        </nav>
-        <div className="aside-bottom">
-          <div className="private-label">
-            <span className="avatar">YO</span>
-            <div>
-              Your workspace
-              <small>
-                {workspaceReady
-                  ? "Private · saved to your account"
-                  : "Practice mode · not connected"}
-              </small>
-            </div>
+    <div
+      className={"shell " + (mode === "quick" ? "quick-mode" : "advanced-mode")}
+    >
+      {mode === "advanced" && (
+        <aside>
+          <div className="brand">
+            <AudioLines /> Interview<span>OS</span>
           </div>
-          <p>One good answer at a time.</p>
-        </div>
-      </aside>
+          <div className="workspace-label">YOUR WORKSPACE</div>
+          <nav>
+            {navigation.map(([label, Icon]) => (
+              <button
+                key={label}
+                disabled={busy || loading}
+                aria-current={label === tab ? "page" : undefined}
+                onClick={() => changeTab(label)}
+                className={label === tab ? "selected" : ""}
+              >
+                <Icon size={18} />
+                {label}
+              </button>
+            ))}
+          </nav>
+          <div className="aside-bottom">
+            <div className="private-label">
+              <span className="avatar">YO</span>
+              <div>
+                Your workspace
+                <small>
+                  {workspaceReady
+                    ? "Private · saved to your account"
+                    : "Practice mode · not connected"}
+                </small>
+              </div>
+            </div>
+            <p>One good answer at a time.</p>
+          </div>
+        </aside>
+      )}
       <main>
-        <header>
-          <span>
-            Workspace / <b>{tab}</b>
+        <header className="workspace-header">
+          <span className="header-brand">
+            {mode === "quick" ? (
+              <>
+                <AudioLines size={21} />
+                InterviewOS
+              </>
+            ) : (
+              <>
+                Workspace / <b>{tab}</b>
+              </>
+            )}
           </span>
-          <span className="pill">
-            {aiAvailable && aiEnabled
-              ? "AI + built-in coach"
-              : "Built-in coach"}
-          </span>
+          <div className="mode-switch" role="group" aria-label="Workspace mode">
+            <button
+              disabled={busy || loading}
+              aria-pressed={mode === "quick"}
+              onClick={() => switchMode("quick")}
+            >
+              Quick practice
+            </button>
+            <button
+              disabled={busy || loading}
+              aria-pressed={mode === "advanced"}
+              onClick={() => switchMode("advanced")}
+            >
+              Advanced workspace
+            </button>
+          </div>
         </header>
+        {mode === "quick" && (
+          <nav className="quick-nav" aria-label="Quick practice navigation">
+            <button
+              disabled={busy || loading}
+              aria-current={isRoom ? "page" : undefined}
+              onClick={showQuickPractice}
+            >
+              Practice
+            </button>
+            <button
+              disabled={busy || loading}
+              aria-current={tab === "Progress" ? "page" : undefined}
+              onClick={() => changeTab("Progress")}
+            >
+              Saved answers{sessions.length > 0 ? ` (${sessions.length})` : ""}
+            </button>
+          </nav>
+        )}
         <section className="page">
           {loading && (
             <div className="banner" role="status">
@@ -700,7 +818,64 @@ export default function Workspace() {
             disabled={loading || busy}
             aria-busy={loading || busy}
           >
-            {isRoom && (
+            {mode === "quick" && isRoom && (
+              <QuickPractice
+                started={quickStarted}
+                canSave={workspaceReady}
+                canResume={!!answer.trim() || !!review}
+                onResume={() => setQuickStarted(true)}
+                goal={quickGoal}
+                onGoal={setQuickGoal}
+                onStart={startQuickPractice}
+                question={question}
+                category={category}
+                answer={answer}
+                onAnswer={answerEdit}
+                review={review}
+                saved={!!savedId}
+                busy={busy || aiBusy}
+                listening={listening}
+                interim={interim}
+                language={language}
+                onLanguage={setLanguage}
+                onListen={listen}
+                onSpeak={speak}
+                onReview={saveAnswer}
+                onRetry={() => retryPractice()}
+                onNext={next}
+                onChooseGoal={() => {
+                  stopVoice();
+                  cancelAI();
+                  setQuickStarted(false);
+                }}
+                onAdvanced={() => switchMode("advanced")}
+                onExport={() =>
+                  download("answer-draft.txt", question + "\n\n" + answer)
+                }
+                focus={practiceFocus}
+                guidance={notes.steps}
+                detailedReview={review ? <ReviewPanel review={review} /> : null}
+              />
+            )}
+            {mode === "quick" && tab === "Progress" && (
+              <QuickHistory
+                canSave={workspaceReady}
+                signedIn={signedIn}
+                sessions={sessions}
+                selected={selectedSession}
+                onSelect={setSelectedSession}
+                onRetry={retryPractice}
+                onExport={sessionExport}
+                onDelete={(s) => remove(s.id, "session")}
+                onPractice={showQuickPractice}
+                detailedReview={
+                  selectedSession ? (
+                    <ReviewPanel review={selectedSession.review} />
+                  ) : null
+                }
+              />
+            )}
+            {mode === "advanced" && isRoom && (
               <>
                 <div className="heading">
                   <div>
@@ -1351,7 +1526,7 @@ export default function Workspace() {
                 )}
               </>
             )}
-            {tab === "Progress" && (
+            {mode === "advanced" && tab === "Progress" && (
               <>
                 <PageHeading
                   eyebrow="SMALL IMPROVEMENTS ADD UP"
@@ -1480,6 +1655,13 @@ export default function Workspace() {
                               {selectedSession.answer}
                             </p>
                             <ReviewPanel review={selectedSession.review} />
+                            <button
+                              className="primary"
+                              onClick={() => retryPractice(selectedSession)}
+                            >
+                              Practice this question again{" "}
+                              <RotateCcw size={16} />
+                            </button>
                             {selectedSession.ai && (
                               <div className="ai-feedback">
                                 <h3>AI feedback</h3>

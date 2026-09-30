@@ -55,6 +55,11 @@ export async function resetWorkspaceRequest(request: APIRequestContext) {
 }
 
 export async function openWorkspace(page: Page) {
+  await openQuickWorkspace(page);
+  await advancedWorkspace(page);
+}
+
+export async function openQuickWorkspace(page: Page) {
   await page.goto("/");
   await expect(
     page.getByRole("heading", { name: "Your next great answer." }),
@@ -64,6 +69,16 @@ export async function openWorkspace(page: Page) {
   ).toHaveCount(0);
 }
 
+export async function advancedWorkspace(page: Page) {
+  const mode = page.getByRole("button", {
+    name: "Advanced workspace",
+    exact: true,
+  });
+  if ((await mode.getAttribute("aria-pressed")) !== "true") await mode.click();
+  await expect(mode).toHaveAttribute("aria-pressed", "true");
+}
+
 export async function tab(page: Page, name: string) {
+  await advancedWorkspace(page);
   await page.getByRole("button", { name, exact: true }).click();
 }

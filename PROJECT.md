@@ -37,17 +37,23 @@ Set `E2E_PORT` if 4173 is occupied. To use an installed Chromium instead of down
 
 The GitHub Actions workflow runs the same quality checks on pushes and pull requests. `npm run build` produces output; it does not deploy it.
 
-## Core workflow
+## Two ways to practice
 
-1. Sign in, then save your target role and resume text
-2. Build reusable STAR stories in Story library
-3. Choose a question or start a five-question mock interview
-4. Type an answer, or explicitly start browser speech recognition
-5. Choose Review & save, then reopen, export, or delete the answer in Progress
+**Quick practice is the default.** Choose one of four plain-language goals (or keep the selected introduction), select Start practicing, answer one question, and get one useful improvement. No resume, story library, or AI key is required. Extra voice controls, answer frameworks, exports, and detailed rubric checks are progressively disclosed.
 
-All seven interview categories contain at least five distinct questions. Starting a mock starts a fresh answer; changing category or choosing another question ends that sequence. Saved answers remain individual reviews. Finishing a mock reports how many were saved.
+**Advanced workspace is always one switch away.** It includes role/resume context, STAR stories, the complete question bank, technical/system-design practice, five-question mocks, timers, progress charts, workspace export, and optional AI. Switching modes keeps current answers, reviews, profiles, stories, and saved history. Switching into Quick practice ends any active mock sequence while preserving its current answer and saved reviews.
 
-Drafts are held in memory, and remain when switching ordinary workspace sections. Replacing an unsaved answer or story asks first. Closing or reloading the page with unsaved changes triggers the browser's warning; use Export draft or save before leaving. Drafts are not automatically uploaded or stored in browser storage. Initial load failure blocks writes until a successful retry, so an empty screen cannot overwrite an existing workspace. Failed saves preserve input, and requests have bounded timeouts.
+1. In Quick practice, select Start practicing with the default goal or choose another goal
+2. Type an answer, then choose Get feedback
+3. Read one next improvement; expand detailed feedback if useful
+4. Choose Try again to edit the answer as a fresh attempt. Earlier saved attempts remain in history
+5. Open Saved answers to revisit or retry any prior answer
+
+Built-in feedback works for guests. Saving requires sign-in and an available workspace; the UI reports whether the answer is actually saved. Failed saves can be retried directly without duplicating the answer. Export an unsaved answer before leaving or signing in through a full-page flow.
+
+All seven advanced interview categories contain at least five distinct questions. Starting a mock starts a fresh answer; changing category or choosing another question ends that sequence. Saved answers remain individual reviews. Finishing a mock reports how many were saved.
+
+Drafts are held in memory, and remain when switching modes or ordinary workspace sections. Replacing an unsaved answer or story asks first. The goal picker offers Resume current answer when a draft is already in progress. Closing or reloading the page with unsaved changes triggers the browser's warning; export or save before leaving. Drafts are not automatically uploaded or stored in browser storage. Initial load failure blocks writes until a successful retry, so an empty screen cannot overwrite an existing workspace. Failed saves preserve input, and requests have bounded timeouts.
 
 ## Architecture and data boundaries
 

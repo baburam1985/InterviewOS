@@ -5,6 +5,7 @@ import {
   answer,
   resetWorkspace,
   openWorkspace,
+  advancedWorkspace,
   tab,
 } from "./fixtures";
 
@@ -447,6 +448,7 @@ test("local sign-in restores private workspace access", async ({ page }) => {
   await expect(
     page.getByText("Loading your saved workspace…", { exact: true }),
   ).toHaveCount(0);
+  await advancedWorkspace(page);
   await page.getByLabel("Your answer", { exact: true }).fill(answer);
   await expect(
     page.getByRole("button", { name: "Review & save" }),
