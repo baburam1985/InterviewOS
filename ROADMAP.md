@@ -13,6 +13,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Quick/Advanced switches share drafts, reviews, profiles, stories, and saved answers
 - Thirty-five built-in questions across seven categories; five distinct questions per mock
 - Explicit saved/unsaved state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
+- Explained built-in practice suggestions, including category-specific rehearsal steps when all basic checks match; no target-role setup is required
 - Portable local setup, synthetic-data tests, and a draft-PR CI gate
 
 The heuristic rubric checks English structure and detail. It does not validate factual correctness, measure job readiness, or predict hiring outcomes. Preserve that distinction in the UI and any future marketing.
