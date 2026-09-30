@@ -35,7 +35,10 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ command }) => {
+  // E2E runs always use a separate, disposable local database. Mock auth stays
+  // confined to Vite's development middleware and loopback requests.
+  const e2e = command === "serve" && process.env.INTERVIEWOS_E2E === "1";
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
   process.env.CLOUDFLARE_CF_FETCH_ENABLED ??= "false";
   process.env.WRANGLER_SEND_METRICS ??= "false";
@@ -52,16 +55,29 @@ export default defineConfig(async () => {
 
   return {
     server: {
-      ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
-      ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
+      ...(managedLinux
+        ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] }
+        : {}),
+      ...(e2e ? { host: "127.0.0.1", strictPort: true } : {}),
+      ...(isCodexSeatbeltSandbox
+        ? { watch: { useFsEvents: false, usePolling: true } }
+        : {}),
     },
     plugins: [
       vinext(),
-      sites({ mockAuth: !managedLinux }),
+      sites({ mockAuth: e2e || !managedLinux }),
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         inspectorPort: false,
-        config: localBindingConfig,
+        config: {
+          ...localBindingConfig,
+          // Declaring an empty secret allowlist prevents .dev.vars/.env and
+          // process credentials from reaching the test Worker.
+          ...(e2e
+            ? { secrets: { required: [] }, vars: { OPENAI_API_KEY: "" } }
+            : {}),
+        },
+        ...(e2e ? { persistState: { path: ".wrangler/test-state" } } : {}),
       }),
     ],
   };
