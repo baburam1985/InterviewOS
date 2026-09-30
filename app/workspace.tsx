@@ -113,6 +113,8 @@ export default function Workspace() {
   const [signInDraftError, setSignInDraftError] = useState("");
   const [mockRun, setMockRun] = useState<MockRun | null>(null);
   const signInNavigation = useRef(false);
+  const signInRecovery = useRef<HTMLDivElement>(null);
+  const [signInRequired, setSignInRequired] = useState(false);
   const [tab, setTab] = useState("Practice room"),
     [profile, setProfile] = useState<Profile>(emptyProfile),
     [stories, setStories] = useState<Story[]>([]),
@@ -155,13 +157,14 @@ export default function Workspace() {
     [mock, setMock] = useState(false),
     [round, setRound] = useState(1);
   const load = useCallback(
-    () =>
+    (profileDraft?: Profile) =>
       loadWorkspace()
         .then((d) => {
           const loadedProfile =
             d.records.find((r) => r.kind === "profile")?.data || emptyProfile;
           setSignedIn(true);
-          setProfile(loadedProfile);
+          setSignInRequired(false);
+          setProfile(profileDraft ?? loadedProfile);
           setSavedProfile(loadedProfile);
           setStories(
             d.records.flatMap((r) => (r.kind === "story" ? [r.data] : [])),
@@ -179,7 +182,7 @@ export default function Workspace() {
           setNotice((e as Error).message);
           setWorkspaceReady(false);
           setLoadError(true);
-          setSignedIn(!(e instanceof ApiError && e.status === 401));
+          if (e instanceof ApiError && e.status === 401) setSignedIn(false);
         })
         .finally(() => {
           setPendingPractice(readPracticeHandoff());
@@ -200,6 +203,11 @@ export default function Workspace() {
       window.speechSynthesis?.cancel();
     };
   }, [load]);
+  useEffect(() => {
+    if (!signInRequired) return;
+    signInRecovery.current?.focus();
+    signInRecovery.current?.scrollIntoView({ block: "start" });
+  }, [signInRequired]);
   useEffect(() => {
     if (!running) return;
     const id = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -265,8 +273,10 @@ export default function Workspace() {
       ? Math.round(sessions.reduce((n, s) => n + s.review.score, 0) / completed)
       : 0;
   function retryLoad() {
+    if (busyRef.current || loading) return;
     if (
       profileDirty &&
+      !signInRequired &&
       !window.confirm(
         "Reload your saved workspace? Unsaved profile changes will be lost.",
       )
@@ -274,7 +284,7 @@ export default function Workspace() {
       return;
     setLoading(true);
     setNotice("");
-    void load();
+    void load(signInRequired && profileDirty ? profile : undefined);
   }
   function prepareSignIn(event: React.MouseEvent<HTMLAnchorElement>) {
     // A modified click may open a different tab while this draft stays here.
@@ -568,6 +578,19 @@ export default function Workspace() {
       setRound((r) => r + 1);
     }
   }
+  function reportWorkspaceMutationError(error: unknown) {
+    if (error instanceof ApiError && error.status === 401) {
+      // A loaded workspace can lose its session. Keep the current data and
+      // drafts, but require a validated reload before allowing another write.
+      setSignedIn(false);
+      setWorkspaceReady(false);
+      setLoadError(true);
+      setSignInRequired(true);
+      setNotice("");
+      return;
+    }
+    setNotice((error as Error).message);
+  }
   async function save<K extends keyof WorkspaceData>(
     kind: K,
     data: WorkspaceData[K],
@@ -579,7 +602,7 @@ export default function Workspace() {
     try {
       return await saveWorkspace(kind, data);
     } catch (e) {
-      setNotice((e as Error).message);
+      reportWorkspaceMutationError(e);
       return null;
     } finally {
       busyRef.current = false;
@@ -667,7 +690,7 @@ export default function Workspace() {
       }
       setNotice("Deleted.");
     } catch (e) {
-      setNotice((e as Error).message);
+      reportWorkspaceMutationError(e);
     } finally {
       busyRef.current = false;
       setBusy(false);
@@ -962,10 +985,17 @@ export default function Workspace() {
               </div>
             )}
           {!signedIn && (
-            <div className="banner">
+            <div
+              className="banner sign-in-recovery"
+              ref={signInRecovery}
+              role={signInRequired ? "alert" : undefined}
+              aria-label={signInRequired ? "Sign-in required" : undefined}
+              tabIndex={signInRequired ? -1 : undefined}
+            >
               <span>
-                You can try practice now. Sign in to save your stories and
-                progress.
+                {signInRequired
+                  ? "Sign in again to save changes. Your open work is still here. If you already signed in elsewhere, check sign-in below."
+                  : "You can try practice now. Sign in to save your stories and progress."}
               </span>
               <a
                 href="/signin-with-chatgpt?return_to=/"
@@ -974,8 +1004,8 @@ export default function Workspace() {
               >
                 Sign in
               </a>
-              <button disabled={loading} onClick={retryLoad}>
-                Retry
+              <button disabled={loading || busy} onClick={retryLoad}>
+                {signInRequired ? "Check sign-in" : "Retry"}
               </button>
             </div>
           )}
@@ -1049,7 +1079,7 @@ export default function Workspace() {
                 Your saved workspace is unavailable. You can practice and export
                 a draft. Retry before saving to avoid overwriting existing data.
               </span>
-              <button disabled={loading} onClick={retryLoad}>
+              <button disabled={loading || busy} onClick={retryLoad}>
                 Retry loading workspace
               </button>
             </div>
@@ -1702,6 +1732,7 @@ export default function Workspace() {
                           <button
                             className="icon-button"
                             aria-label={"Delete " + s.title}
+                            disabled={!workspaceReady}
                             onClick={() => remove(s.id, "story")}
                           >
                             <Trash2 size={16} />
@@ -1897,6 +1928,7 @@ export default function Workspace() {
                               <button
                                 className="icon-button"
                                 aria-label="Delete session"
+                                disabled={!workspaceReady}
                                 onClick={() =>
                                   remove(selectedSession.id, "session")
                                 }

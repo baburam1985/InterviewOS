@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Find saved answers:** Search question, answer text, or category and use short contextual previews to distinguish repeated questions. Clear search recovers the full list; filtered Back navigation, deletion recovery and practice/mode detours preserve context and current drafts
+- **Sign-in recovery during practice:** A save or deletion rejected because sign-in is required keeps open work visible and offers Sign in or Check sign-in. Further writes wait for a validated workspace reload; rechecking preserves edited profile and story fields, and saving or deleting still requires an explicit retry
+
+- **Find saved answers ([PR #10](https://github.com/baburam1985/InterviewOS/pull/10)):** Search question, answer text, or category and use short contextual previews to distinguish repeated questions. Clear search recovers the full list; filtered Back navigation, deletion recovery and practice/mode detours preserve context and current drafts
 - **Actionable practice help ([PR #9](https://github.com/baburam1985/InterviewOS/pull/9)):** Current and saved Quick reviews offer a collapsed sentence starter or editing/rehearsal prompt for the suggested next step. Placeholders keep personal details grounded, technical examples can be explicitly hypothetical, and opening help leaves answers and scores unchanged
 - **Recovery from unexpected workspace responses ([PR #8](https://github.com/baburam1985/InterviewOS/pull/8)):** Validate complete loads and matching save/delete acknowledgements before updating the editor or history. Keep drafts and visible items when confirmation is missing, distinguish unconfirmed saves, and retry the same record even when the first request already committed
 - **Keyboard continuity in Quick practice ([PR #7](https://github.com/baburam1985/InterviewOS/pull/7)):** Opening feedback or returning to the goal chooser brings the new heading into view and places keyboard focus there. Resuming a reviewed answer works the same way, while the initial welcome and background save completion leave focus and scrolling alone
