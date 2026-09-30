@@ -13,6 +13,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Quick/Advanced switches share drafts, reviews, profiles, stories, and saved answers
 - Thirty-five built-in questions across seven categories; five distinct questions per mock
 - Explicit saved/unsaved state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
+- Guest sign-in keeps a validated temporary practice copy in the same tab, with explicit resume/discard and export fallback; recovery never saves to an account automatically
 - Explained built-in practice suggestions, including category-specific rehearsal steps when all basic checks match; no target-role setup is required
 - Portable local setup, synthetic-data tests, and a draft-PR CI gate
 
@@ -21,7 +22,7 @@ The heuristic rubric checks English structure and detail. It does not validate f
 ## Next small iterations
 
 1. Validate the first-use flow with a small set of target users: can they start without explanation, understand one next fix, retry, and find saved work? Measure friction rather than adding features by default
-2. Improve continuity: safely retain a guest draft through sign-in; consider remembering the user's selected workspace mode; test interrupted flows and keyboard/mobile access
+2. Improve continuity: validate guest sign-in recovery through the hosted authentication and embedded-browser paths; consider remembering the user's selected workspace mode; test interrupted flows and keyboard/mobile access
 3. Make role context more useful: connect real stories and role requirements to targeted practice while keeping context optional and personal claims grounded in supplied evidence
 4. Add persistent mock summaries: show questions completed/skipped, saved answers, and one priority for the next session; preserve individual reviews
 5. Improve attempt comparison: show what changed between answers and whether a specific structural gap was addressed, without implying a validated performance score

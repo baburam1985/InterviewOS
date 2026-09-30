@@ -38,6 +38,12 @@ import {
   capabilities,
 } from "../lib/interview";
 import { api, ApiError } from "../lib/client-api";
+import {
+  clearPracticeHandoff,
+  readPracticeHandoff,
+  writePracticeHandoff,
+  type PracticeDraft,
+} from "../lib/practice-handoff";
 import { QuickPractice, QuickHistory } from "../components/quick-practice";
 import type { SpeechRecognition, SpeechWindow } from "../lib/speech";
 type WorkspaceRecord =
@@ -87,6 +93,11 @@ export default function Workspace() {
   const [quickStarted, setQuickStarted] = useState(false);
   const [quickGoal, setQuickGoal] = useState("Recruiter");
   const [practiceFocus, setPracticeFocus] = useState("");
+  const [pendingPractice, setPendingPractice] = useState<PracticeDraft | null>(
+    null,
+  );
+  const [signInDraftError, setSignInDraftError] = useState("");
+  const signInNavigation = useRef(false);
   const [tab, setTab] = useState("Practice room"),
     [profile, setProfile] = useState<Profile>(emptyProfile),
     [stories, setStories] = useState<Story[]>([]),
@@ -156,7 +167,10 @@ export default function Workspace() {
           setLoadError(true);
           setSignedIn(!(e instanceof ApiError && e.status === 401));
         })
-        .finally(() => setLoading(false)),
+        .finally(() => {
+          setPendingPractice(readPracticeHandoff());
+          setLoading(false);
+        }),
     [],
   );
   useEffect(() => {
@@ -196,6 +210,9 @@ export default function Workspace() {
   useEffect(() => {
     if (!answerDirty && !storyDirty && !profileDirty && !busy) return;
     const warn = (event: BeforeUnloadEvent) => {
+      const leavingForSignIn = signInNavigation.current;
+      signInNavigation.current = false;
+      if (leavingForSignIn && !storyDirty && !profileDirty && !busy) return;
       event.preventDefault();
       event.returnValue = "";
     };
@@ -244,6 +261,92 @@ export default function Workspace() {
     setLoading(true);
     setNotice("");
     void load();
+  }
+  function prepareSignIn(event: React.MouseEvent<HTMLAnchorElement>) {
+    // A modified click may open a different tab while this draft stays here.
+    // Never suppress this document's next unsaved-work warning in that case.
+    if (
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0
+    )
+      return;
+    if (busyRef.current || loading) {
+      event.preventDefault();
+      return;
+    }
+    if (listening) {
+      event.preventDefault();
+      stopVoice();
+      setNotice(
+        "Microphone stopped. Check your transcript, then choose Sign in again.",
+      );
+      return;
+    }
+    if (answer.trim()) {
+      if (window.top !== window.self) {
+        event.preventDefault();
+        setSignInDraftError(
+          "Signing in leaves this view, so the draft may not carry over. Download your answer first, or continue without the draft.",
+        );
+        return;
+      }
+      const kept = writePracticeHandoff({
+        question,
+        category: category as PracticeDraft["category"],
+        answer,
+        seconds: voiceOnly ? voiceSeconds : 0,
+        reviewed: !!review,
+        focus: practiceFocus,
+        mode,
+      });
+      if (!kept) {
+        event.preventDefault();
+        setSignInDraftError(
+          "Your browser couldn’t keep a temporary copy. Download your answer before signing in, or continue without the draft.",
+        );
+        return;
+      }
+    } else if (!pendingPractice) {
+      clearPracticeHandoff();
+    }
+    signInNavigation.current = answerDirty;
+    setSignInDraftError("");
+  }
+  function resumePractice() {
+    if (!pendingPractice || busyRef.current || loading) return;
+    // Re-read the expiry at use time, including when the page has been left open.
+    const draft = readPracticeHandoff();
+    if (!draft) {
+      setPendingPractice(null);
+      setNotice(
+        "This temporary draft has expired or is unavailable. You can start a new answer.",
+      );
+      return;
+    }
+    if (!resetQuestion(draft.question, draft.category)) return;
+    setAnswer(draft.answer);
+    setVoiceSeconds(draft.seconds);
+    setVoiceOnly(draft.seconds > 0);
+    setReview(
+      draft.reviewed
+        ? evaluate(draft.answer, draft.seconds, draft.category)
+        : null,
+    );
+    setPracticeFocus(draft.focus);
+    setMode(draft.mode);
+    setQuickStarted(true);
+    setTab(
+      ["Technical", "System design"].includes(draft.category)
+        ? "Technical lab"
+        : "Practice room",
+    );
+    clearPracticeHandoff();
+    setPendingPractice(null);
+    setSignInDraftError("");
+    setNotice("Practice answer restored. It is not saved to your history yet.");
   }
   function cancelAI() {
     aiAbort.current?.abort();
@@ -804,11 +907,79 @@ export default function Workspace() {
                 You can try practice now. Sign in to save your stories and
                 progress.
               </span>
-              <a href="/signin-with-chatgpt?return_to=/" target="_top">
+              <a
+                href="/signin-with-chatgpt?return_to=/"
+                target="_top"
+                onClick={prepareSignIn}
+              >
                 Sign in
               </a>
               <button disabled={loading} onClick={retryLoad}>
                 Retry
+              </button>
+            </div>
+          )}
+          {!signedIn &&
+            !!answer.trim() &&
+            !pendingPractice &&
+            !signInDraftError && (
+              <p className="micro-copy">
+                Where supported, sign-in keeps this practice answer in this tab
+                for up to 30 minutes. Otherwise, download it before continuing.
+                Other unsaved edits are not included.
+              </p>
+            )}
+          {signInDraftError && !signedIn && (
+            <div className="banner" role="alert">
+              <span>{signInDraftError}</span>
+              <button
+                onClick={() =>
+                  download("answer-draft.txt", question + "\n\n" + answer)
+                }
+              >
+                Download draft
+              </button>
+              <a
+                href="/signin-with-chatgpt?return_to=/"
+                target="_top"
+                onClick={(event) => {
+                  if (
+                    event.ctrlKey ||
+                    event.metaKey ||
+                    event.shiftKey ||
+                    event.altKey ||
+                    event.button !== 0
+                  )
+                    return;
+                  clearPracticeHandoff();
+                  signInNavigation.current = answerDirty;
+                }}
+              >
+                Continue without draft
+              </a>
+            </div>
+          )}
+          {!loading && pendingPractice && (
+            <div
+              className="banner"
+              role="region"
+              aria-label="Resume practice after sign-in"
+            >
+              <span>
+                Your practice answer is ready to resume. It was kept temporarily
+                in this tab for sign-in and has not been saved to your history.
+              </span>
+              <button disabled={busy} onClick={resumePractice}>
+                Resume answer
+              </button>
+              <button
+                disabled={busy}
+                onClick={() => {
+                  clearPracticeHandoff();
+                  setPendingPractice(null);
+                }}
+              >
+                Discard draft
               </button>
             </div>
           )}
