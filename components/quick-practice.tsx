@@ -15,6 +15,7 @@ import {
 import type { Review, Session } from "../lib/interview";
 import { feedbackReason } from "../lib/interview";
 import { FeedbackHelp } from "./feedback-help";
+import { AnswerComparison } from "./answer-comparison";
 import { findSavedAnswers } from "../lib/saved-answer-search";
 
 export const practiceGoals = [
@@ -487,6 +488,11 @@ export function QuickHistory({
             <summary>See detailed feedback</summary>
             {detailedReview}
           </details>
+          <AnswerComparison
+            key={selected.id}
+            selected={selected}
+            sessions={sessions}
+          />
           <div className="actions">
             <button onClick={() => onExport(selected)}>
               <Download size={15} /> Export review

@@ -57,6 +57,7 @@ import {
 } from "../lib/answer-refresh";
 import { workspaceExport } from "../lib/workspace-export";
 import { CoachingContext } from "../components/coaching-context";
+import { AnswerComparison } from "../components/answer-comparison";
 import {
   coachingRequest,
   type CoachingContextChoices,
@@ -2061,6 +2062,11 @@ export default function Workspace() {
                               review={selectedSession.review}
                               answer={selectedSession.answer}
                               category={selectedSession.category}
+                            />
+                            <AnswerComparison
+                              key={selectedSession.id}
+                              selected={selectedSession}
+                              sessions={sessions}
                             />
                             <button
                               className="primary"
