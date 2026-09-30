@@ -11,6 +11,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Quick flow: choose a goal → answer one question → one improvement → retry
 - No required resume, long setup, or AI key for built-in feedback
 - Quick/Advanced switches share drafts, reviews, profiles, stories, and saved answers
+- Quick saved-answer navigation opens one answer at a time, with visible Back navigation, keyboard focus restoration, and precise saved timestamps
 - Thirty-five built-in questions across seven categories; five distinct questions per mock
 - Current-visit mock recap shows each round's actual outcome, saved-answer access, a direct return to an unsaved current answer, and one grounded next practice step
 - Explicit saved/unsaved state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
@@ -26,7 +27,7 @@ The heuristic rubric checks English structure and detail. It does not validate f
 2. Improve continuity: validate guest sign-in recovery through the hosted authentication and embedded-browser paths; consider remembering the user's selected workspace mode; test interrupted flows and keyboard/mobile access
 3. Make role context more useful: connect real stories and role requirements to targeted practice while keeping context optional and personal claims grounded in supplied evidence
 4. Validate the current-visit mock recap with users before adding persistent group summaries; preserve individual reviews and distinguish skipped, unsaved, and unvisited rounds
-5. Improve attempt comparison: show what changed between answers and whether a specific structural gap was addressed, without implying a validated performance score
+5. Validate finding and revisiting saved attempts with larger histories and assistive technology; then consider comparisons that show a concrete structural change without implying a validated performance score
 6. Evaluate accessible PDF/DOCX import and question organization only after confirming demand; use explicit size/type limits and secure parsing
 
 ## Before a commercial pilot

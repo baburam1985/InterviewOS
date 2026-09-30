@@ -327,6 +327,7 @@ export function QuickHistory({
   sessions,
   selected,
   onSelect,
+  onBack,
   onRetry,
   onExport,
   onDelete,
@@ -339,6 +340,7 @@ export function QuickHistory({
   sessions: Session[];
   selected: Session | null;
   onSelect: (session: Session) => void;
+  onBack: () => void;
   onRetry: (session: Session) => void;
   onExport: (session: Session) => void;
   onDelete: (session: Session) => void;
@@ -346,15 +348,95 @@ export function QuickHistory({
   detailedReview: React.ReactNode;
   recap?: React.ReactNode;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  const detail = useRef<HTMLDivElement>(null);
+  const answerButtons = useRef(new Map<string, HTMLButtonElement>());
+  const lastSelectedId = useRef<string | null>(null);
+  const selectedId = selected?.id;
+  useEffect(() => {
+    if (selectedId) {
+      lastSelectedId.current = selectedId;
+      detail.current?.focus({ preventScroll: true });
+      detail.current?.scrollIntoView({ block: "start" });
+    } else {
+      const previous = lastSelectedId.current
+        ? answerButtons.current.get(lastSelectedId.current)
+        : null;
+      (previous ?? heading.current)?.focus();
+    }
+  }, [selectedId]);
+
+  const savedTime = (session: Session) => (
+    <time dateTime={session.createdAt}>
+      {new Date(session.createdAt).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "medium",
+      })}
+    </time>
+  );
+
   return (
     <section className="quick-session">
       <div className="quick-intro">
         <span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span>
-        <h1>Your saved answers.</h1>
-        <p>Revisit an answer, then work on one useful improvement.</p>
+        <h1 ref={heading} tabIndex={-1}>
+          Your saved answers.
+        </h1>
+        <p>
+          {selected
+            ? "Read your answer, then choose one thing to practice."
+            : "Choose an answer to revisit or practice again."}
+        </p>
       </div>
-      {recap}
-      {!sessions.length ? (
+      {!selected && recap}
+      {selected ? (
+        <div
+          className="card quick-answer-detail"
+          id="saved-answer-detail"
+          ref={detail}
+          tabIndex={-1}
+          role="region"
+          aria-labelledby="saved-answer-question"
+        >
+          <button className="text-button history-back" onClick={onBack}>
+            <ChevronRight
+              size={16}
+              aria-hidden="true"
+              className="back-chevron"
+            />{" "}
+            Back to saved answers
+          </button>
+          <p className="quick-saved">
+            <Check size={16} /> Saved {savedTime(selected)}
+          </p>
+          <h2 id="saved-answer-question">{selected.question}</h2>
+          <h3>One thing to try</h3>
+          <p className="quick-next-step">{selected.review.next}</p>
+          <p className="muted quick-feedback-reason">
+            {feedbackReason(selected.review)}
+          </p>
+          <button
+            className="primary quick-primary"
+            onClick={() => onRetry(selected)}
+          >
+            Practice this question again <RotateCcw size={17} />
+          </button>
+          <details className="quick-details" open>
+            <summary>Your saved answer</summary>
+            <p className="saved-answer">{selected.answer}</p>
+          </details>
+          <details className="quick-details">
+            <summary>See detailed feedback</summary>
+            {detailedReview}
+          </details>
+          <div className="actions">
+            <button onClick={() => onExport(selected)}>
+              <Download size={15} /> Export review
+            </button>
+            <button onClick={() => onDelete(selected)}>Delete answer</button>
+          </div>
+        </div>
+      ) : !sessions.length ? (
         <div className="card quick-empty">
           <Play size={28} />
           <h2>
@@ -374,67 +456,25 @@ export function QuickHistory({
           </button>
         </div>
       ) : (
-        <div className="quick-history-layout">
-          <div className="quick-history-list" aria-label="Saved answers">
-            {sessions.map((s) => (
-              <button
-                className={selected?.id === s.id ? "selected" : ""}
-                key={s.id}
-                onClick={() => onSelect(s)}
-              >
-                <span>
-                  <strong>{s.question}</strong>
-                  <small>
-                    {new Date(s.createdAt).toLocaleDateString()} · {s.category}
-                  </small>
-                </span>
-                <ChevronRight size={16} />
-              </button>
-            ))}
-          </div>
-          <div className="card" id="saved-answer-detail" tabIndex={-1}>
-            {selected ? (
-              <>
-                <p className="quick-saved">
-                  <Check size={16} /> Saved answer
-                </p>
-                <h2>{selected.question}</h2>
-                <h3>One thing to try</h3>
-                <p className="quick-next-step">{selected.review.next}</p>
-                <p className="muted quick-feedback-reason">
-                  {feedbackReason(selected.review)}
-                </p>
-                <button
-                  className="primary quick-primary"
-                  onClick={() => onRetry(selected)}
-                >
-                  Practice this question again <RotateCcw size={17} />
-                </button>
-                <details className="quick-details" open>
-                  <summary>Your saved answer</summary>
-                  <p className="saved-answer">{selected.answer}</p>
-                </details>
-                <details className="quick-details">
-                  <summary>See detailed feedback</summary>
-                  {detailedReview}
-                </details>
-                <div className="actions">
-                  <button onClick={() => onExport(selected)}>
-                    <Download size={15} />
-                    Export review
-                  </button>
-                  <button onClick={() => onDelete(selected)}>
-                    Delete answer
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2>Choose an answer</h2>
-                <p>Select a saved answer to read it or practice it again.</p>
-              </>
-            )}
-          </div>
+        <div className="quick-history-list" aria-label="Saved answers">
+          {sessions.map((session) => (
+            <button
+              key={session.id}
+              ref={(button) => {
+                if (button) answerButtons.current.set(session.id, button);
+                else answerButtons.current.delete(session.id);
+              }}
+              onClick={() => onSelect(session)}
+            >
+              <span>
+                <strong>{session.question}</strong>
+                <small>
+                  Saved {savedTime(session)} · {session.category}
+                </small>
+              </span>
+              <ChevronRight size={16} aria-hidden="true" />
+            </button>
+          ))}
         </div>
       )}
     </section>
