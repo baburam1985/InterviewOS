@@ -29,6 +29,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Optional help in current and saved Quick reviews turns the next step into a placeholder starter or editing/rehearsal prompt, with no generated personal claims or automatic answer changes
 - Optional AI setup distinguishes configured, absent and failed checks with a content-free retry; validated replies preserve prior drafts/feedback on malformed output and stay within the saved-coaching limit
 - Optional AI starts with profile/story sharing off; independent choices and a readable request preview disclose current unsaved profile fields and the first five saved stories before an explicit request
+- Existing local databases initialized from the original SQL can safely adopt the migration ledger only after exact schema/history checks and a verified private backup; mismatches stop without resetting records
 - One local-start command checks Node/dependencies, applies local migrations, prints exact practice/sign-in URLs and rejects occupied ports; a disposable real-start/restart smoke test verifies saved profile/story/answer persistence
 - Portable local setup, synthetic-data tests, and a draft-PR CI gate
 

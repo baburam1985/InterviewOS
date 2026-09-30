@@ -15,7 +15,7 @@ rmSync(path.join(projectRoot, ".wrangler/test-state"), {
   recursive: true,
   force: true,
 });
-migrateLocal({ test: true });
+await migrateLocal({ test: true });
 
 const { createServer } = await import("vite");
 const server = await createServer({
