@@ -32,12 +32,13 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Existing local databases initialized from the original SQL can safely adopt the migration ledger only after exact schema/history checks and a verified private backup; mismatches stop without resetting records
 - One local-start command checks Node/dependencies, applies local migrations, prints exact practice/sign-in URLs and rejects occupied ports; a disposable real-start/restart smoke test verifies saved profile/story/answer persistence
 - Portable local setup, synthetic-data tests, and a draft-PR CI gate
+- A separate Firefox/WebKit compatibility gate covers guest recovery and retry/history, narrow-viewport draft/export continuity, and uncertain-save recovery alongside the full Chromium/API suite
 
 The heuristic rubric checks English structure and detail. It does not validate factual correctness, measure job readiness, or predict hiring outcomes. Preserve that distinction in the UI and any future marketing.
 
 ## Next small iterations
 
-1. Verify the documented local-start handoff on the target computer, then validate the first-use flow with a small set of target users: can they find a suitable question, start without explanation, understand one next fix and its keyword evidence, use or adapt the optional starter, retry, and find saved work? Measure friction rather than adding features by default
+1. Keep the end-of-day local handoff on verified main. The target Mac has passed the real legacy-schema adoption, unchanged-record checks, restart and Chrome save/reload flow; repeat a final smoke check after syncing the final commit. Then validate first use with a small set of target users: can they find a suitable question, start without explanation, understand one next fix and its keyword evidence, use or adapt the optional starter, retry, and find saved work? Measure friction rather than adding features by default
 2. Improve continuity: validate unreliable connections and interrupted acknowledgements on hosted infrastructure, in addition to synthetic recovery tests; validate guest and expired-session sign-in recovery through the hosted authentication and embedded-browser paths; validate the draft-inclusive local export with users before designing a safe import flow; validate changed-answer recovery with real multi-tab use and consider server version checks for edits that race after a reload; consider remembering the user's selected workspace mode; validate stage announcements with assistive technology and physical mobile keyboards in addition to automated focus/viewport checks
 3. Make role context more useful: connect real stories and role requirements to targeted practice while keeping context optional and personal claims grounded in supplied evidence
 4. Validate the current-visit mock recap with users before adding persistent group summaries; preserve individual reviews and distinguish skipped, unsaved, and unvisited rounds
@@ -59,7 +60,7 @@ Pricing, subscriptions, billing, entitlement enforcement, refunds/support, and r
 
 ## Verification and iteration rules
 
-Run `npm run check` on the final tree: lint, TypeScript, isolated local-start/restart smoke tests, unit tests, Chromium end-to-end/API tests, and production build. Keep fixtures synthetic and local; the test runner resets only its dedicated `.wrangler/test-state` database and excludes AI secrets. Record the exact commit and CI run when publishing a change.
+Run `npm run check` on the final tree: lint, TypeScript, isolated local-start/restart smoke tests, unit tests, Chromium end-to-end/API tests, and production build. Also pass `npm run test:compat` for the three core journeys in each Firefox/WebKit engine. CI uses separate jobs; run these commands sequentially in one local checkout because they share disposable test state. Keep fixtures synthetic and local; the test runner resets only its dedicated `.wrangler/test-state` database and excludes AI secrets. Record the exact commit and both CI job results when publishing a change. Automated WebKit and narrow-view tests do not establish physical Safari/iPhone, touch, keyboard, assistive-technology or hosted-authentication behavior.
 
 Current regression coverage includes tenant-scoped SQL, malformed/oversized/Unicode requests, server-owned reviews, record collisions, provider failures/cancellation, persistence, imports/exports/deletion, retries, draft guards, voice fallbacks, mocks, responsive layout, and Quick/Advanced continuity. Live services and physical devices require additional validation; mocked tests are not evidence that they work in production.
 

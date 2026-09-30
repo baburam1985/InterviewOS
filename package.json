@@ -21,7 +21,9 @@
     "check": "npm run lint && npm run typecheck && npm run test:startup && npm test && npm run build",
     "test:unit": "node --import ./tests/unit/register.mjs --test tests/unit/*.test.mjs",
     "dev:local": "node scripts/start-local.mjs",
-    "test:startup": "node --test tests/startup/*.test.mjs"
+    "test:startup": "node --test tests/startup/*.test.mjs",
+    "test:compat": "playwright test --config playwright.compat.config.ts",
+    "test:install:compat": "playwright install firefox webkit"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
