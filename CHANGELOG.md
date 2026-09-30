@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Sign-in recovery during practice:** A save or deletion rejected because sign-in is required keeps open work visible and offers Sign in or Check sign-in. Further writes wait for a validated workspace reload; rechecking preserves edited profile and story fields, and saving or deleting still requires an explicit retry
+- **Explain feedback signals:** Detailed reviews show the matched text and a short answer excerpt for each keyword check, explain when configured phrases did not match, and disclose the word-count range. Current and saved answers use the same rubric rules; scores and stored answers remain unchanged
+
+- **Sign-in recovery during practice ([PR #11](https://github.com/baburam1985/InterviewOS/pull/11)):** A save or deletion rejected because sign-in is required keeps open work visible and offers Sign in or Check sign-in. Further writes wait for a validated workspace reload; rechecking preserves edited profile and story fields, and saving or deleting still requires an explicit retry
 
 - **Find saved answers ([PR #10](https://github.com/baburam1985/InterviewOS/pull/10)):** Search question, answer text, or category and use short contextual previews to distinguish repeated questions. Clear search recovers the full list; filtered Back navigation, deletion recovery and practice/mode detours preserve context and current drafts
 - **Actionable practice help ([PR #9](https://github.com/baburam1985/InterviewOS/pull/9)):** Current and saved Quick reviews offer a collapsed sentence starter or editing/rehearsal prompt for the suggested next step. Placeholders keep personal details grounded, technical examples can be explicitly hypothetical, and opening help leaves answers and scores unchanged

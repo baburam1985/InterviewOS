@@ -47,7 +47,7 @@ The GitHub Actions workflow runs the same quality checks on pushes and pull requ
 
 1. In Quick practice, select Start practicing with the default goal or choose another goal
 2. Type an answer, then choose Get feedback. If a question does not fit, Try another question stays within the same goal and asks before replacing any unsaved answer
-3. Read one next improvement. Help me with this step opens an optional sentence starter or editing prompt; fill placeholders with details you can support and label hypothetical technical examples. Detailed rubric checks remain optional
+3. Read one next improvement. Help me with this step opens an optional sentence starter or editing prompt; fill placeholders with details you can support and label hypothetical technical examples. Detailed rubric checks remain optional. They show the exact matched text with a short excerpt, explain non-matches, and disclose the 60–300 word range. A match is a keyword signal, not proof that an answer is complete or correct
 4. Choose Try again to edit the answer as a fresh attempt. Earlier saved attempts remain in history
 5. Open Saved answers to search by question, answer text, or category. Search words can match across these fields; short previews show relevant answer context. Choose an answer to read it, export its review, or practice it again. Back to saved answers returns to the chosen row; the Saved answers tab also opens the list. The search stays in place through practice and mode switches during this visit; Clear search restores the full list. Saved timestamps include the time so repeated questions are easier to distinguish
 
