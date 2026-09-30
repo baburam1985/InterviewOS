@@ -1,70 +1,17 @@
-const { chromium } = require('C:/Users/babur/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-(async()=>{
- const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
- const page=await browser.newPage({viewport:{width:1440,height:1000}});
- const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://localhost:5173/signin-with-chatgpt?return_to=/');
- await page.getByRole('heading',{name:'Your next great answer.'}).waitFor();
- await page.waitForFunction(()=>!document.body.innerText.includes('Loading your saved workspace'));
- const stale=await (await page.request.get('http://localhost:5173/api/workspace')).json(); for(const r of stale.records||[]){if((r.kind==='story'&&r.data.title.startsWith('QA fixture:'))||(r.kind==='session'&&(r.data.answer.startsWith('During a project our team')||r.data.answer.startsWith('Use a hash map. Check each input')))||(r.kind==='profile'&&r.data.company==='Example QA Company'))await page.request.delete('http://localhost:5173/api/workspace?id='+(r.kind==='profile'?'profile':r.data.id))} await page.reload(); await page.waitForFunction(()=>!document.body.innerText.includes('Loading your saved workspace')); const initial=await page.request.get('http://localhost:5173/api/workspace');assert.equal(initial.status(),200,await initial.text());
- await page.getByRole('button',{name:'Role & resume',exact:true}).click();
- await page.getByLabel('Role',{exact:true}).fill('QA Engineer');
- await page.getByLabel('Company',{exact:true}).fill('Example QA Company');
- await page.getByLabel('Resume or experience notes').fill('QA fixture: I led testing for a release and reduced escaped defects by 30%.');
- await page.getByLabel('Job description').fill('Build reliable systems and lead test strategy.');
- await page.getByRole('button',{name:'Save profile'}).click();
- await page.getByRole('status').filter({hasText:'Role and resume saved'}).waitFor();
- await page.reload();
- await page.getByRole('button',{name:'Role & resume',exact:true}).click();
- await page.waitForFunction(()=>!document.body.innerText.includes('Loading your saved workspace'));
- await page.getByLabel('Role',{exact:true}).waitFor();assert.equal(await page.getByLabel('Role',{exact:true}).inputValue(),'QA Engineer');
- await page.getByRole('button',{name:'Story library',exact:true}).click();
- await page.getByRole('button',{name:'New story',exact:true}).click();
- await page.getByLabel('Story title').fill('QA fixture: led a project through ambiguity');
- await page.getByLabel('S · Situation').fill('During a project, the team had unclear launch requirements.');
- await page.getByLabel('T · Task').fill('I owned the testing strategy.');
- await page.getByLabel('A · Action').fill('First I analyzed risks, then I implemented focused tests because coverage was missing.');
- await page.getByLabel('R · Result').fill('We reduced defects by 30% and delivered the project.');
- await page.getByRole('button',{name:'Save story',exact:true}).click();
- await page.getByRole('heading',{name:'QA fixture: led a project through ambiguity',exact:true}).waitFor();
- await page.getByRole('button',{name:'Edit story',exact:true}).click();
- await page.getByLabel('R · Result').fill('We reduced defects by 35% and delivered the project.');
- await page.getByRole('button',{name:'Save story',exact:true}).click();
- await page.getByRole('button',{name:'Question bank',exact:true}).click();
- await page.getByLabel('Search questions').fill('ambiguity');
- assert.equal(await page.locator('.question-list>button').count(),1);
- await page.locator('.question-list>button').click();
- await page.getByLabel('Your answer',{exact:true}).fill('During a project our team faced unclear requirements. I owned the release testing strategy and needed to improve quality. First I analyzed the highest risk flows because we had limited time. Then I implemented a focused test plan, reviewed it with the team, and prioritized the most important scenarios. As a result, we reduced escaped defects by 35 percent over six weeks. I learned to align stakeholders early.');
- await page.getByRole('button',{name:'Review & save'}).click();
- await page.getByRole('status').filter({hasText:'Answer and review saved'}).waitFor();
- assert.match(await page.locator('.review').innerText(),/100% checks met/);
- await page.getByRole('button',{name:'Progress',exact:true}).click();
- await page.locator('.history-row').first().click();
- await page.getByRole('button',{name:'Export review',exact:true}).waitFor();
- const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export review',exact:true}).click();
- const dl=await downloadPromise;assert.match(dl.suggestedFilename(),/interview-review/);
- await page.reload();await page.waitForFunction(()=>!document.body.innerText.includes('Loading your saved workspace'));
- await page.getByRole('button',{name:'Progress',exact:true}).click();
- await page.locator('.history-row').first().waitFor();
- await page.getByRole('button',{name:'Technical lab',exact:true}).click();await page.getByLabel('Your solution & explanation').fill('Use a hash map. Check each input number for its complement. Time O(n), space O(n). Test empty input and duplicate values.');
- await page.getByRole('button',{name:'Review & save'}).click();await page.getByRole('status').filter({hasText:'Answer and review saved'}).waitFor();
- await page.getByRole('button',{name:'Research & settings',exact:true}).click();
- assert.equal(await page.locator('.capability').count(),10);
- assert.equal(await page.getByLabel('Enable optional AI coaching').isDisabled(),true);
- await page.getByRole('button',{name:'Practice room',exact:true}).click();
- fs.mkdirSync('outputs',{recursive:true});await page.screenshot({path:'outputs/desktop.png',fullPage:true});
- for(const width of [390,768]){await page.setViewportSize({width,height:844});await page.screenshot({path:'outputs/mobile-'+width+'.png',fullPage:true});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'No horizontal overflow at '+width)}
- const other=await browser.newContext();const anon=await other.request.get('http://localhost:5173/api/workspace');assert.equal(anon.status(),401);await other.close();
- const invalid=await page.request.post('http://localhost:5173/api/workspace',{data:{kind:'story',data:{id:'bad'}}});assert.equal(invalid.status(),400);
- // Remove only this test's records, leaving user data intact.
- const data=await (await page.request.get('http://localhost:5173/api/workspace')).json();
- for(const r of data.records){if(r.kind==='story'&&r.data.title.startsWith('QA fixture:')||r.kind==='session'&&(r.data.answer.startsWith('During a project our team')||r.data.answer.startsWith('Use a hash map. Check each input')))await page.request.delete('http://localhost:5173/api/workspace?id='+r.data.id)}
- const before=await initial.json();const oldProfile=before.records.find(r=>r.kind==='profile');
- if(oldProfile)await page.request.post('http://localhost:5173/api/workspace',{data:oldProfile});else await page.request.delete('http://localhost:5173/api/workspace?id=profile');
- assert.deepEqual(errors,[],'No browser errors');
- await browser.close();console.log('PASS: profile persistence, story create/edit, search, review/save, session reload, export, technical lab, research, mobile layout, auth, validation, cleanup.');
-})().catch(e=>{console.error(e);process.exit(1)});
-
-
+// Backwards-compatible entry point; dependencies and browser are now portable.
+(async () => {
+  const { spawnSync } = await import("node:child_process");
+  const { createRequire } = await import("node:module");
+  const { resolve } = await import("node:path");
+  const require = createRequire(__filename);
+  const result = spawnSync(
+    process.execPath,
+    [require.resolve("@playwright/test/cli"), "test", ...process.argv.slice(2)],
+    { cwd: resolve(__dirname, ".."), stdio: "inherit" },
+  );
+  if (result.error) throw result.error;
+  process.exitCode = result.status ?? 1;
+})().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
