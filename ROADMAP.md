@@ -12,6 +12,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - No required resume, long setup, or AI key for built-in feedback
 - Quick/Advanced switches share drafts, reviews, profiles, stories, and saved answers
 - Thirty-five built-in questions across seven categories; five distinct questions per mock
+- Current-visit mock recap shows each round's actual outcome, saved-answer access, a direct return to an unsaved current answer, and one grounded next practice step
 - Explicit saved/unsaved state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
 - Guest sign-in keeps a validated temporary practice copy in the same tab, with explicit resume/discard and export fallback; recovery never saves to an account automatically
 - Explained built-in practice suggestions, including category-specific rehearsal steps when all basic checks match; no target-role setup is required
@@ -24,7 +25,7 @@ The heuristic rubric checks English structure and detail. It does not validate f
 1. Validate the first-use flow with a small set of target users: can they start without explanation, understand one next fix, retry, and find saved work? Measure friction rather than adding features by default
 2. Improve continuity: validate guest sign-in recovery through the hosted authentication and embedded-browser paths; consider remembering the user's selected workspace mode; test interrupted flows and keyboard/mobile access
 3. Make role context more useful: connect real stories and role requirements to targeted practice while keeping context optional and personal claims grounded in supplied evidence
-4. Add persistent mock summaries: show questions completed/skipped, saved answers, and one priority for the next session; preserve individual reviews
+4. Validate the current-visit mock recap with users before adding persistent group summaries; preserve individual reviews and distinguish skipped, unsaved, and unvisited rounds
 5. Improve attempt comparison: show what changed between answers and whether a specific structural gap was addressed, without implying a validated performance score
 6. Evaluate accessible PDF/DOCX import and question organization only after confirming demand; use explicit size/type limits and secure parsing
 
