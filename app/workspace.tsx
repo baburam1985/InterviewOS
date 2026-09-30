@@ -51,6 +51,7 @@ import {
   type PracticeDraft,
 } from "../lib/practice-handoff";
 import { QuickPractice, QuickHistory } from "../components/quick-practice";
+import { workspaceExport } from "../lib/workspace-export";
 import { CheckEvidence } from "../components/check-evidence";
 import { MockRecap } from "../components/mock-recap";
 import {
@@ -175,6 +176,19 @@ export default function Workspace() {
               .flatMap((r) => (r.kind === "session" ? [r.data] : []))
               .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
           );
+          // A record removed since the last load must not keep the retained
+          // editor marked saved or a deleted history detail visible.
+          setSavedId((id) =>
+            d.records.some((r) => r.kind === "session" && r.data.id === id)
+              ? id
+              : "",
+          );
+          setSelectedSession((selected) => {
+            const record = d.records.find(
+              (r) => r.kind === "session" && r.data.id === selected?.id,
+            );
+            return record?.kind === "session" ? record.data : null;
+          });
           setWorkspaceReady(true);
           setLoadError(false);
           if (d.warning) setNotice(d.warning);
@@ -189,7 +203,7 @@ export default function Workspace() {
           setPendingPractice(readPracticeHandoff());
           setLoading(false);
         }),
-    [],
+    [setSavedId, setSelectedSession],
   );
   useEffect(() => {
     void load();
@@ -273,6 +287,46 @@ export default function Workspace() {
     average = completed
       ? Math.round(sessions.reduce((n, s) => n + s.review.score, 0) / completed)
       : 0;
+  const hasExportableWork =
+    sessions.length > 0 ||
+    stories.length > 0 ||
+    Object.values(profile).some(Boolean) ||
+    profileDirty ||
+    storyDirty ||
+    answerDirty;
+  function exportWorkspace() {
+    if (busyRef.current || loading || listening || !hasExportableWork) return;
+    const snapshot = workspaceExport({
+      profile,
+      profileHasUnsavedChanges: profileDirty,
+      savedWorkspaceAvailable: workspaceReady,
+      stories,
+      sessions,
+      storyDraft: storyDirty ? storyDraft : null,
+      practiceDraft: answerDirty
+        ? {
+            question,
+            category,
+            answer,
+            seconds: voiceOnly ? voiceSeconds : 0,
+            review,
+            ai: aiText,
+            focus: practiceFocus,
+            saveState: answerSaveUnconfirmed ? "unconfirmed" : "unsaved",
+          }
+        : null,
+    });
+    download(
+      "interviewos-export.json",
+      JSON.stringify(snapshot, null, 2),
+      "application/json",
+    );
+  }
+  const exportOpenWork = (profileDirty || storyDirty) && (
+    <button disabled={loading || busy || listening} onClick={exportWorkspace}>
+      Export open work
+    </button>
+  );
   function retryLoad() {
     if (busyRef.current || loading) return;
     if (
@@ -1008,6 +1062,7 @@ export default function Workspace() {
               <button disabled={loading || busy} onClick={retryLoad}>
                 {signInRequired ? "Check sign-in" : "Retry"}
               </button>
+              {exportOpenWork}
             </div>
           )}
           {!signedIn &&
@@ -1083,6 +1138,7 @@ export default function Workspace() {
               <button disabled={loading || busy} onClick={retryLoad}>
                 Retry loading workspace
               </button>
+              {exportOpenWork}
             </div>
           )}
           <fieldset
@@ -1833,28 +1889,23 @@ export default function Workspace() {
                   text="Your actual practice history, with a clear next step."
                   action={
                     <button
-                      disabled={
-                        !sessions.length &&
-                        !stories.length &&
-                        !Object.values(profile).some(Boolean)
-                      }
-                      onClick={() =>
-                        download(
-                          "interviewos-export.json",
-                          JSON.stringify(
-                            { profile, stories, sessions },
-                            null,
-                            2,
-                          ),
-                          "application/json",
-                        )
-                      }
+                      disabled={!hasExportableWork || listening}
+                      onClick={exportWorkspace}
                     >
                       <Download size={16} />
                       Export workspace
                     </button>
                   }
                 />
+                <p className="micro-copy workspace-export-help">
+                  Export includes saved items available in this tab, your
+                  current profile, and unsaved answer or story drafts. The JSON
+                  file may contain resume text and personal details. Keep it
+                  somewhere private; you can copy text back manually, but
+                  automatic import is not available.
+                  {!workspaceReady &&
+                    " Saved workspace unavailable: this export may be incomplete."}
+                </p>
                 {recap}
                 <div className="stats">
                   <div className="card">
