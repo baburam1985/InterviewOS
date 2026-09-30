@@ -10,6 +10,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 
 - Quick flow: choose a goal → answer one question → one improvement → retry
 - Quick users can try another question before answering, with no empty saved attempts, draft replacement protection, and keyboard context for the changed prompt
+- Quick stage changes reveal the feedback or goal heading and preserve a useful keyboard position; ordinary save completion does not interrupt reading
 - No required resume, long setup, or AI key for built-in feedback
 - Quick/Advanced switches share drafts, reviews, profiles, stories, and saved answers
 - Quick saved-answer navigation opens one answer at a time, with visible Back navigation, keyboard focus restoration, and precise saved timestamps
@@ -25,7 +26,7 @@ The heuristic rubric checks English structure and detail. It does not validate f
 ## Next small iterations
 
 1. Validate the first-use flow with a small set of target users: can they find a suitable question, start without explanation, understand one next fix, retry, and find saved work? Measure friction rather than adding features by default
-2. Improve continuity: validate guest sign-in recovery through the hosted authentication and embedded-browser paths; consider remembering the user's selected workspace mode; test interrupted flows and keyboard/mobile access
+2. Improve continuity: validate guest sign-in recovery through the hosted authentication and embedded-browser paths; consider remembering the user's selected workspace mode; validate stage announcements with assistive technology and physical mobile keyboards in addition to automated focus/viewport checks
 3. Make role context more useful: connect real stories and role requirements to targeted practice while keeping context optional and personal claims grounded in supplied evidence
 4. Validate the current-visit mock recap with users before adding persistent group summaries; preserve individual reviews and distinguish skipped, unsaved, and unvisited rounds
 5. Validate finding and revisiting saved attempts with larger histories and assistive technology; then consider comparisons that show a concrete structural change without implying a validated performance score

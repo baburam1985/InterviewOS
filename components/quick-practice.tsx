@@ -74,14 +74,28 @@ export function QuickPractice(props: Props) {
   const answerInput = useRef<HTMLTextAreaElement>(null);
   const questionHeading = useRef<HTMLHeadingElement>(null);
   const feedbackHeading = useRef<HTMLHeadingElement>(null);
-  const hasReview = !!props.review;
+  const goalHeading = useRef<HTMLHeadingElement>(null);
+  const stage = !props.started ? "goal" : props.review ? "feedback" : "answer";
+  const previousStage = useRef<typeof stage | null>(null);
   useEffect(() => {
-    if (hasReview) feedbackHeading.current?.focus({ preventScroll: true });
-    else if (props.started) {
+    const heading =
+      stage === "feedback"
+        ? feedbackHeading.current
+        : stage === "goal" &&
+            previousStage.current !== null &&
+            previousStage.current !== "goal"
+          ? goalHeading.current
+          : null;
+    if (heading) {
+      heading.focus({ preventScroll: true });
+      heading.scrollIntoView({ block: "start" });
+    } else if (stage === "answer") {
       answerInput.current?.focus({ preventScroll: true });
       questionHeading.current?.scrollIntoView({ block: "nearest" });
     }
-  }, [props.started, hasReview, props.question]);
+    // Leave the initial welcome alone; only move focus when a practice stage opens.
+    previousStage.current = stage;
+  }, [stage, props.question]);
   if (!props.started)
     return (
       <section className="quick-welcome" aria-label="Start a practice">
@@ -91,7 +105,9 @@ export function QuickPractice(props: Props) {
           <p>A little practice can make it easier to say what you mean.</p>
         </div>
         <div className="card quick-start-card">
-          <h2>What would you like to practice?</h2>
+          <h2 className="quick-stage-heading" ref={goalHeading} tabIndex={-1}>
+            What would you like to practice?
+          </h2>
           <p className="muted">Pick a goal, or keep the selected one.</p>
           <div
             className="quick-goals"
@@ -143,7 +159,11 @@ export function QuickPractice(props: Props) {
       <section className="quick-session" aria-label="Your feedback">
         <div className="quick-intro">
           <span className="eyebrow">A SMALL STEP FORWARD</span>
-          <h1 ref={feedbackHeading} tabIndex={-1}>
+          <h1
+            className="quick-stage-heading"
+            ref={feedbackHeading}
+            tabIndex={-1}
+          >
             Your next practice step.
           </h1>
         </div>
