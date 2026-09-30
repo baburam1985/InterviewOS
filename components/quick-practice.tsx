@@ -52,6 +52,7 @@ type Props = {
   onAnswer: (answer: string) => void;
   review: Review | null;
   saved: boolean;
+  saveUnconfirmed: boolean;
   busy: boolean;
   listening: boolean;
   interim: string;
@@ -175,6 +176,8 @@ export function QuickPractice(props: Props) {
               <>
                 <Check size={16} /> Saved to your history
               </>
+            ) : props.saveUnconfirmed ? (
+              "Save not confirmed. Retry saving, or export your answer below."
             ) : (
               "Not saved yet. You can export this answer below."
             )}

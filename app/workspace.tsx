@@ -39,6 +39,12 @@ import {
 } from "../lib/interview";
 import { api, ApiError } from "../lib/client-api";
 import {
+  loadWorkspace,
+  saveWorkspace,
+  deleteWorkspace,
+  type WorkspaceData,
+} from "../lib/workspace-client";
+import {
   clearPracticeHandoff,
   readPracticeHandoff,
   writePracticeHandoff,
@@ -56,11 +62,6 @@ import {
   type MockRun,
 } from "../lib/mock-practice";
 import type { SpeechRecognition, SpeechWindow } from "../lib/speech";
-type WorkspaceRecord =
-  | { kind: "profile"; data: Profile }
-  | { kind: "story"; data: Story }
-  | { kind: "session"; data: Session };
-
 const ANSWER_SAVED_NOTICE = "Answer and review saved to your progress.";
 
 const navigation = [
@@ -104,6 +105,7 @@ export default function Workspace() {
   const [quickGoal, setQuickGoal] = useState("Recruiter");
   const [quickHistoryOpen, setQuickHistoryOpen] = useState(false);
   const [practiceFocus, setPracticeFocus] = useState("");
+  const [answerSaveUnconfirmed, setAnswerSaveUnconfirmed] = useState(false);
   const [pendingPractice, setPendingPractice] = useState<PracticeDraft | null>(
     null,
   );
@@ -153,7 +155,7 @@ export default function Workspace() {
     [round, setRound] = useState(1);
   const load = useCallback(
     () =>
-      api<{ records: WorkspaceRecord[]; warning?: string }>("/api/workspace")
+      loadWorkspace()
         .then((d) => {
           const loadedProfile =
             d.records.find((r) => r.kind === "profile")?.data || emptyProfile;
@@ -407,6 +409,7 @@ export default function Workspace() {
     setVoiceSeconds(0);
     setVoiceOnly(false);
     setSavedId("");
+    setAnswerSaveUnconfirmed(false);
     sessionId.current = "";
     if (!continueMock) setMock(false);
     setNotice("");
@@ -564,20 +567,16 @@ export default function Workspace() {
       setRound((r) => r + 1);
     }
   }
-  async function save<T extends Profile | Story | Omit<Session, "review">>(
-    kind: string,
-    data: T,
+  async function save<K extends keyof WorkspaceData>(
+    kind: K,
+    data: WorkspaceData[K],
   ) {
     if (busyRef.current || !workspaceReady) return null;
     busyRef.current = true;
     setBusy(true);
     setNotice("");
     try {
-      return await api<{ data: T }>("/api/workspace", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, data }),
-      });
+      return await saveWorkspace(kind, data);
     } catch (e) {
       setNotice((e as Error).message);
       return null;
@@ -611,6 +610,7 @@ export default function Workspace() {
       ai: aiText || undefined,
     };
     const result = await save("session", s);
+    setAnswerSaveUnconfirmed(!result);
     if (result) {
       setSessions((prev) => [
         result.data,
@@ -655,10 +655,7 @@ export default function Workspace() {
     busyRef.current = true;
     setBusy(true);
     try {
-      await api(
-        "/api/workspace?id=" + encodeURIComponent(id) + "&kind=" + kind,
-        { method: "DELETE" },
-      );
+      await deleteWorkspace(id, kind);
       if (kind === "story") {
         setStories((s) => s.filter((x) => x.id !== id));
         if (storyDraft?.id === id) setStoryDraft(null);
@@ -697,6 +694,7 @@ export default function Workspace() {
       if (aiAbort.current === controller && !controller.signal.aborted) {
         setAiText(d.text);
         setSavedId("");
+        setAnswerSaveUnconfirmed(false);
       }
     } catch (e) {
       if (aiAbort.current === controller && !controller.signal.aborted)
@@ -749,6 +747,7 @@ export default function Workspace() {
         setAnswer((a) => (a + " " + final).trim().slice(0, 30000));
         setReview(null);
         setSavedId("");
+        setAnswerSaveUnconfirmed(false);
         setAiText("");
       }
       setInterim(partial);
@@ -796,6 +795,7 @@ export default function Workspace() {
     window.speechSynthesis.speak(u);
   }
   function answerEdit(value: string) {
+    setAnswerSaveUnconfirmed(false);
     cancelAI();
     setAnswer(value);
     setVoiceOnly(false);
@@ -1073,6 +1073,7 @@ export default function Workspace() {
                 onAnswer={answerEdit}
                 review={review}
                 saved={!!savedId}
+                saveUnconfirmed={answerSaveUnconfirmed}
                 busy={busy || aiBusy}
                 listening={listening}
                 interim={interim}

@@ -399,7 +399,9 @@ test("a failed quick save retains feedback and retries the same record once", as
   await expect(page.getByRole("status")).toContainText(
     "Synthetic temporary save failure",
   );
-  await expect(page.locator(".quick-saved")).toContainText("Not saved yet");
+  await expect(page.locator(".quick-saved")).toContainText(
+    "Save not confirmed",
+  );
   await expect(
     page.getByRole("heading", { name: "One thing to try", exact: true }),
   ).toBeVisible();
