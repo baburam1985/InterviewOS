@@ -53,6 +53,8 @@ To run the compatibility gate locally, install its browsers once with `npm run t
 
 The full end-to-end/API suite runs in Chromium; Firefox/WebKit cover the three core journeys above. WebKit on CI is not a physical Safari or iPhone test, and a narrow viewport does not validate touch, mobile keyboards, microphones or assistive technology. Hosted sign-in still needs separate validation. `npm run build` produces output; it does not deploy it.
 
+Chromium recovery tests also put the browser offline and hold local server replies through the real 15-second client timeout, without speeding up clocks or replacing the timeout function. They verify that a failed load allows practice without overwriting saved work, a timed-out save unlocks the UI, and explicit retry confirms the same record even when the first write committed. These controlled failures do not establish hosted-network reliability.
+
 ## Two ways to practice
 
 **Quick practice is the default.** Choose one of four plain-language goals (or keep the selected introduction), select Start practicing, answer one question, and get one useful improvement. No resume, story library, or AI key is required. Extra voice controls, answer frameworks, exports, and detailed rubric checks are progressively disclosed.
