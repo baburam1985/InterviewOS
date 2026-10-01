@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Check core journeys in more browser engines:** A separate Firefox/WebKit CI gate exercises guest sign-in recovery, retries and saved-history export, narrow-viewport draft/mode/export continuity, and interrupted-save recovery. The full Chromium suite remains in place; physical Safari/mobile devices and hosted authentication still need separate validation
+- **Keep the final words of a spoken answer:** Changing a Quick goal or replacing a question while recognition is finishing now waits for its final transcript. Quick start stays unavailable during an Advanced-to-Quick voice transition. Completion leaves the current question and answer for review; a later replacement still requires the existing draft confirmation
+
+- **Check core journeys in more browser engines ([PR #20](https://github.com/baburam1985/InterviewOS/pull/20)):** A separate Firefox/WebKit CI gate exercises guest sign-in recovery, retries and saved-history export, narrow-viewport draft/mode/export continuity, and interrupted-save recovery. The full Chromium suite remains in place; physical Safari/mobile devices and hosted authentication still need separate validation
 
 - **Start existing local workspaces safely ([PR #19](https://github.com/baburam1985/InterviewOS/pull/19)):** Legacy databases initialized from the original SQL file can adopt the migration ledger after exact schema and migration-file checks, with a verified private SQL backup first. Atomic guards reject schema/history races, mismatches stop for review, and records remain unchanged. Normal migrations then continue
 

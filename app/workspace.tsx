@@ -106,6 +106,8 @@ function download(name: string, text: string, type = "text/plain") {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+const VOICE_FINISH_NOTICE =
+  "Finishing voice input. Check your transcript before continuing.";
 function time(n: number) {
   return (
     Math.floor(n / 60)
@@ -492,6 +494,12 @@ export default function Workspace() {
     recognition.current?.stop();
     setRunning(false);
   }
+  function waitForVoice() {
+    if (!recognition.current) return false;
+    setNotice(VOICE_FINISH_NOTICE);
+    stopVoice();
+    return true;
+  }
   function discardVoice() {
     const rec = recognition.current;
     recognition.current = null;
@@ -508,6 +516,9 @@ export default function Workspace() {
     retainsAnswer = false,
   ) {
     if (busyRef.current) return false;
+    // stop() can deliver final words asynchronously. Keep this recognition
+    // and its answer until onend; only a later explicit action may replace it.
+    if (waitForVoice()) return false;
     if (
       answerDirty &&
       !retainsAnswer &&
@@ -913,6 +924,11 @@ export default function Workspace() {
       setListening(false);
       setInterim("");
       setRunning(false);
+      setNotice((current) =>
+        current === VOICE_FINISH_NOTICE
+          ? "Voice input finished. Check your answer before continuing."
+          : current,
+      );
     };
     try {
       rec.start();
@@ -1234,7 +1250,7 @@ export default function Workspace() {
                 onRetry={() => retryPractice()}
                 onNext={next}
                 onChooseGoal={() => {
-                  stopVoice();
+                  if (waitForVoice()) return;
                   cancelAI();
                   setQuickStarted(false);
                 }}

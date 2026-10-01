@@ -21,6 +21,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Validated rechecks detect a changed saved answer against this tab's confirmed/unconfirmed payloads, preserve current work as a separate unsaved attempt, and keep matching uncertain writes on the same retry ID
 - Local workspace exports retain current profile edits and open answer/story drafts alongside available saved records, clearly identify unavailable data and unconfirmed saves, and leave editor state unchanged; automatic import remains unimplemented
 - Explicit saved/unsaved/unconfirmed state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
+- Question replacements and Quick goal changes wait for finishing speech recognition so delayed final words remain in the current draft; no automatic replacement or save follows completion
 - Workspace load/save/delete acknowledgements are validated before state updates; uncertain saves retry the same record without duplicates and malformed loads cannot partially replace the editor
 - When sign-in is lost during a save or deletion, a focused recovery notice preserves drafts and visible records; further writes require a validated reload, and edited profile/story fields survive a same-page sign-in recheck
 - Guest sign-in keeps a validated temporary practice copy in the same tab, with explicit resume/discard and export fallback; recovery never saves to an account automatically

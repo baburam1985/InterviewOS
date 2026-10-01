@@ -137,9 +137,19 @@ export function QuickPractice(props: Props) {
               </label>
             ))}
           </div>
-          <button className="primary quick-primary" onClick={props.onStart}>
+          <button
+            className="primary quick-primary"
+            disabled={props.listening}
+            onClick={props.onStart}
+          >
             Start practicing <ArrowRight size={18} />
           </button>
+          {props.listening && (
+            <p className="micro-copy" role="status">
+              Finishing voice input. Your current answer will be available
+              when transcription ends.
+            </p>
+          )}
           {props.canResume && (
             <button className="text-button full" onClick={props.onResume}>
               Resume current answer
