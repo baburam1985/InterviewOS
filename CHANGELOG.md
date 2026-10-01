@@ -2,7 +2,9 @@
 
 ## September 30, 2026
 
-- **Keep the final words of a spoken answer:** Changing a Quick goal or replacing a question while recognition is finishing now waits for its final transcript. Quick start stays unavailable during an Advanced-to-Quick voice transition. Completion leaves the current question and answer for review; a later replacement still requires the existing draft confirmation
+- **Verify connection recovery before handoff:** Integrated browser tests cover offline saving, the real client timeout after a write has committed, and a stalled initial load. They verify preserved drafts/history, released busy controls, explicit recovery and retry without duplicate records, using isolated synthetic data
+
+- **Keep the final words of a spoken answer ([PR #21](https://github.com/baburam1985/InterviewOS/pull/21)):** Changing a Quick goal or replacing a question while recognition is finishing now waits for its final transcript. Quick start stays unavailable during an Advanced-to-Quick voice transition. Completion leaves the current question and answer for review; a later replacement still requires the existing draft confirmation
 
 - **Check core journeys in more browser engines ([PR #20](https://github.com/baburam1985/InterviewOS/pull/20)):** A separate Firefox/WebKit CI gate exercises guest sign-in recovery, retries and saved-history export, narrow-viewport draft/mode/export continuity, and interrupted-save recovery. The full Chromium suite remains in place; physical Safari/mobile devices and hosted authentication still need separate validation
 

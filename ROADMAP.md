@@ -23,6 +23,7 @@ The commercial positioning is a hypothesis, not a validated market claim: an evi
 - Explicit saved/unsaved/unconfirmed state, direct failed-save retry, draft protection, and isolated asynchronous callbacks
 - Question replacements and Quick goal changes wait for finishing speech recognition so delayed final words remain in the current draft; no automatic replacement or save follows completion
 - Workspace load/save/delete acknowledgements are validated before state updates; uncertain saves retry the same record without duplicates and malformed loads cannot partially replace the editor
+- Integrated Chromium tests cover actual browser-offline saves and the native client timeout for stalled loads and already-committed saves, preserving drafts, unlocking controls and confirming same-record retries
 - When sign-in is lost during a save or deletion, a focused recovery notice preserves drafts and visible records; further writes require a validated reload, and edited profile/story fields survive a same-page sign-in recheck
 - Guest sign-in keeps a validated temporary practice copy in the same tab, with explicit resume/discard and export fallback; recovery never saves to an account automatically
 - Explained built-in practice suggestions, including category-specific rehearsal steps when all basic checks match; no target-role setup is required
