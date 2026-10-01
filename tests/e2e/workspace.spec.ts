@@ -547,6 +547,13 @@ test("late transcription after switching questions cannot alter the next answer"
     page.getByRole("button", { name: "Stop microphone" }),
   ).toBeVisible();
   await tab(page, "Technical lab");
+  // The first action finishes recognition; a later explicit action replaces
+  // the question after the user has had a chance to check the transcript.
+  await expect(page.getByLabel("Your answer", { exact: true })).toBeEmpty();
+  await expect(page.getByRole("status")).toContainText(
+    "Voice input finished. Check your answer before continuing.",
+  );
+  await tab(page, "Technical lab");
   await page.evaluate(() => {
     const recognition = Reflect.get(window, "__testRecognition");
     recognition.onresult?.({

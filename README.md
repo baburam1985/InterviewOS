@@ -107,6 +107,7 @@ AI replies are validated before display or saved-state changes. Missing, non-tex
 - The built-in rubric uses English keywords. It indicates structure and detail, not answer correctness or hiring likelihood
 - Recruiter and negotiation answers use category-specific checks; other nontechnical prompts use a general STAR-style rubric
 - Voice transcription depends on browser/platform support and its speech service. Audio may be sent to that service; this app stores only transcripts explicitly saved with a review
+- Changing a goal, category, technical route or starting a mock waits for active voice recognition to finish returning its final words. The current answer stays available; repeat the intended action after checking it, then confirm any unsaved-answer replacement. Switching to Quick also prevents starting over while transcription is finishing. Automated delayed-recognition tests use synthetic callbacks, not a real microphone or speech service
 - Speaking pace is shown only for unedited voice answers with at least ten measured seconds. Paused time and typed text are not presented as speaking pace
 - Resume import accepts `.txt`; paste text from PDF or Word documents
 - No native hidden overlay, screen capture, direct meeting capture, video recording, or code execution
